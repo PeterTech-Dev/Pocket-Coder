@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.AiAssistantCoder" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:textColor">@color/textColorPrimary</item>
+    </style>
+
+    <style name="Theme.AiAssistantCoder.Roboto" parent="Theme.AiAssistantCoder">
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="Theme.AiAssistantCoder.OpenSans" parent="Theme.AiAssistantCoder">
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
+    <style name="Theme.AiAssistantCoder.Lato" parent="Theme.AiAssistantCoder">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+</resources>

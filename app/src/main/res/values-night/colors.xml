@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#64B5F6</color>
+    <color name="colorPrimaryDark">#1976D2</color>
+    <color name="colorAccent">#BB86FC</color>
+
+    <color name="backgroundColor">#121212</color>
+    <color name="cardBackgroundColor">#1E1E1E</color>
+    <color name="textColorPrimary">#FFFFFF</color>
+    <color name="textColorSecondary">#B0B0B0</color>
+
+    <color name="chatBubbleUser">#37474F</color>
+    <color name="chatBubbleAi">#263238</color>
+</resources>
