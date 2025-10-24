@@ -82,28 +82,28 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 messageImage.setVisibility(View.GONE);
             }
 
+            String text = message.getText() != null ? message.getText() : "";
+
             if (message.getRole().equals("user")) {
-                messageText.setText(message.getText());
+                messageText.setText(text);
                 messageRoot.setGravity(Gravity.END);
                 bubbleLayout.setBackgroundResource(R.drawable.bg_chat_bubble_user);
                 copyButton.setVisibility(View.GONE);
                 copyCodeButton.setVisibility(View.GONE);
             } else {
-                if (message.getText() != null) {
-                    markwon.setMarkdown(messageText, message.getText());
-                }
+                markwon.setMarkdown(messageText, text);
                 messageRoot.setGravity(Gravity.START);
                 bubbleLayout.setBackgroundResource(R.drawable.bg_chat_bubble_ai);
 
                 copyButton.setVisibility(View.VISIBLE);
                 copyButton.setOnClickListener(v -> {
                     ClipboardManager clipboard = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("Copied Text", message.getText());
+                    ClipData clip = ClipData.newPlainText("Copied Text", text);
                     clipboard.setPrimaryClip(clip);
                     Toast.makeText(v.getContext(), "Full message copied", Toast.LENGTH_SHORT).show();
                 });
 
-                String code = extractCode(message.getText());
+                String code = extractCode(text);
                 if (!code.isEmpty()) {
                     copyCodeButton.setVisibility(View.VISIBLE);
                     copyCodeButton.setOnClickListener(v -> {

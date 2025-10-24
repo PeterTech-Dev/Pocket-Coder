@@ -1,14 +1,9 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
-        mavenCentral()
         gradlePluginPortal()
+        google()
+        mavenCentral()
+        maven { url = uri("https://chaquo.com/maven") }   // ✅
     }
 }
 dependencyResolutionManagement {
@@ -16,9 +11,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://chaquo.com/maven") }   // ✅
     }
 }
 
-rootProject.name = "Ai Assistant Coder"
+
+rootProject.name = "AiAssistantCoder"
 include(":app")
- 

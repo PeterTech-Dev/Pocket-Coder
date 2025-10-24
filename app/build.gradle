@@ -1,0 +1,110 @@
+// app/build.gradle  (Groovy)
+
+import java.util.Properties
+
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.gms.google-services'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'com.chaquo.python'
+}
+
+// ---- load local.properties once (no duplicates) ----
+def localProps = new Properties()
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+
+android {
+    namespace 'com.example.aiassistantcoder'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.example.aiassistantcoder"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // BuildConfig fields
+        buildConfigField "String", "GEMINI_MODEL", "\"gemini-1.5-flash\""
+        def geminiKey = localProps.getProperty("GEMINI_API_KEY", "")
+        buildConfigField "String", "GEMINI_API_KEY", "\"${geminiKey}\""
+
+        // Chaquopy requires ABIs to be declared
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
+
+        // Chaquopy: declare Python deps here
+        python {
+            buildPython "C:/Users/Peter/AppData/Local/Programs/Python/Python310/python.exe"
+
+            pip {
+                // keep it minimal at first to confirm the toolchain works
+                install "requests"
+            }
+        }
+    }
+
+    // so Chaquopy can find your Python files
+    sourceSets {
+        main {
+            python.srcDir "src/main/python"
+        }
+    }
+
+    buildFeatures { buildConfig = true }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+        debug {
+            // (optional) easier to see Chaquopy logs
+            jniDebuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions { jvmTarget = "11" }
+}
+
+dependencies {
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
+    implementation "com.google.code.gson:gson:2.10.1"
+
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0"
+    implementation "com.google.guava:guava:32.0.1-android"
+    implementation "org.mozilla:rhino:1.7.14"
+
+    implementation "io.noties.markwon:core:4.6.2"
+    implementation "io.noties.markwon:image:4.6.2"
+
+    implementation platform("com.google.firebase:firebase-bom:32.3.1")
+    implementation "com.google.firebase:firebase-auth"
+    implementation "com.google.firebase:firebase-firestore"
+
+    implementation "com.github.bumptech.glide:glide:4.12.0"
+    kapt "com.github.bumptech.glide:compiler:4.12.0"
+
+    implementation "io.github.Rosemoe.sora-editor:editor:0.21.0"
+
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
+
