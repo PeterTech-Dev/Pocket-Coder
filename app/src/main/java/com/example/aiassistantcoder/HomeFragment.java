@@ -29,6 +29,7 @@ import com.google.ai.client.generativeai.type.GenerateContentResponse;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
 import java.util.concurrent.Executor;
@@ -109,7 +110,7 @@ public class HomeFragment extends Fragment {
                             "- If the text is about programming, proceed normally.\n\n" +
                             "Images\n" +
                             "- If an image contains code, UI mockups, diagrams, schemas, or dev-relevant content, interpret it for programming purposes and continue.\n" +
-                            "- If an image is not code but could inspire an app or feature, and the user hasn’t clearly stated what to do, ask them to choose one of these options (do not invent extra):\n" +
+                            "- If an image is not code but could inspire an app or feature, and the user hasn’t clearly stated what to do, ask them to choose one of these options (do not invent extra): " +
                             "  1) \"Generate app idea + feature list from this image\"\n" +
                             "  2) \"Draft a minimal architecture/tech stack for an app inspired by this image\"\n" +
                             "  3) \"Produce starter code (scaffold) for a simple app related to this image\"\n" +
@@ -144,17 +145,31 @@ public class HomeFragment extends Fragment {
                 public void onSuccess(GenerateContentResponse result) {
                     String responseText = result.getText();
 
-                    Project newProject = new Project(searchText);
-                    newProject.addMessage(new Message(searchText, "user"));
-                    newProject.addMessage(new Message(responseText, "model"));
-                    ProjectRepository.getInstance().addProject(newProject);
-
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
                             loadingIndicator.setVisibility(View.GONE);
                             Intent intent = new Intent(getActivity(), ResponseActivity.class);
-                            intent.putExtra("projectTitle", newProject.getTitle());
-                            startActivity(intent);
+                            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                                Project newProject = new Project(searchText);
+                                newProject.addMessage(new Message(searchText, "user"));
+                                newProject.addMessage(new Message(responseText, "model"));
+                                ProjectRepository.getInstance().saveProjectToFirestore(newProject, new ProjectRepository.ProjectSaveCallback() {
+                                    @Override
+                                    public void onSaved(String projectId) {
+                                        intent.putExtra("projectTitle", newProject.getTitle());
+                                        startActivity(intent);
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Toast.makeText(getContext(), "Error saving project: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            } else {
+                                intent.putExtra("query", searchText);
+                                intent.putExtra("response", responseText);
+                                startActivity(intent);
+                            }
                         });
                     }
                 }
@@ -164,7 +179,11 @@ public class HomeFragment extends Fragment {
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
                             loadingIndicator.setVisibility(View.GONE);
-                            Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            String errorMessage = t.getMessage();
+                            if (errorMessage.contains("PERMISSION_DENIED")) {
+                                errorMessage = "Cloud Firestore API has not been enabled. Please enable it in the Google Cloud console.";
+                            }
+                            Toast.makeText(getContext(), "Error: " + errorMessage, Toast.LENGTH_LONG).show();
                         });
                     }
                 }

@@ -4,12 +4,15 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectViewHolder> {
 
@@ -30,13 +33,22 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
     public void onBindViewHolder(@NonNull ProjectViewHolder holder, int position) {
         Project project = projectList.get(position);
         holder.projectTitle.setText(project.getTitle());
-        holder.projectDate.setText(project.getDate());
-        holder.projectCodeType.setText(project.getCodeType());
+
+        if (project.getCreatedAt() != null) {
+            String formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(project.getCreatedAt());
+            holder.projectDate.setText(formattedDate);
+        } else {
+            holder.projectDate.setText(""); // Or some default text
+        }
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), ResponseActivity.class);
             intent.putExtra("projectTitle", project.getTitle());
             v.getContext().startActivity(intent);
+        });
+
+        holder.deleteButton.setOnClickListener(v -> {
+            ProjectRepository.getInstance().deleteProject(project);
         });
     }
 
@@ -46,13 +58,14 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
     }
 
     public static class ProjectViewHolder extends RecyclerView.ViewHolder {
-        TextView projectTitle, projectDate, projectCodeType;
+        TextView projectTitle, projectDate;
+        ImageButton deleteButton;
 
         public ProjectViewHolder(@NonNull View itemView) {
             super(itemView);
             projectTitle = itemView.findViewById(R.id.project_title);
             projectDate = itemView.findViewById(R.id.project_date);
-            projectCodeType = itemView.findViewById(R.id.project_code_type);
+            deleteButton = itemView.findViewById(R.id.delete_project_button);
         }
     }
 }

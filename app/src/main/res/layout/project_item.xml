@@ -22,11 +22,11 @@
         android:textAppearance="?attr/textAppearanceBody2"
         android:layout_marginEnd="16dp"/>
 
-    <TextView
-        android:id="@+id/project_code_type"
+    <ImageButton
+        android:id="@+id/delete_project_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Code"
-        android:textAppearance="?attr/textAppearanceBody2" />
+        android:src="@drawable/ic_close"        
+        android:background="?attr/selectableItemBackgroundBorderless"/>
 
 </LinearLayout>

@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,6 +41,12 @@ public class MainActivity extends AppCompatActivity {
                 setTheme(R.style.Theme_AiAssistantCoder);
                 break;
         }
+        
+        // Enable Firestore offline caching
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(true)
+                .build();
+        FirebaseFirestore.getInstance().setFirestoreSettings(settings);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
