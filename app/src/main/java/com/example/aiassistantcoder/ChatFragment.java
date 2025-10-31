@@ -21,11 +21,16 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.ByteArrayOutputStream;
@@ -61,10 +66,13 @@ public class ChatFragment extends Fragment {
     private final Gson gson = new Gson();
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-    // Pick a model; 2.0-flash is a good default
+    // Model/endpoint
     private static final String MODEL = "gemini-flash-latest";
     private static final String ENDPOINT =
             "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent?key=";
+
+    // Bus to the editor
+    private AiUpdateViewModel aiBus;
 
     // Image picker
     private final ActivityResultLauncher<Intent> pickImage = registerForActivityResult(
@@ -93,6 +101,8 @@ public class ChatFragment extends Fragment {
         imagePreview = view.findViewById(R.id.image_preview);
         imagePreviewContainer = view.findViewById(R.id.image_preview_container);
         chatRecyclerView = view.findViewById(R.id.chat_recycler_view);
+
+        aiBus = new ViewModelProvider(requireActivity()).get(AiUpdateViewModel.class);
 
         ImageButton sendButton = view.findViewById(R.id.send_button);
         ImageButton imageInputButton = view.findViewById(R.id.image_input_button);
@@ -141,39 +151,51 @@ public class ChatFragment extends Fragment {
         loadingIndicator.setVisibility(View.VISIBLE);
         chatInput.setEnabled(false);
 
+        // DISPLAY (prettified if JSON is embedded) vs RAW (for API)
+        String displayUserText = formatJsonInsideText(messageText);
+
         // add user message to project history & UI
-        Message userMessage = new Message(messageText, "user");
+        Message userMessage = new Message(displayUserText, "user");
         if (selectedImageUri != null) userMessage.setImageUri(selectedImageUri.toString());
         currentProject.addMessage(userMessage);
         chatAdapter.notifyItemInserted(currentProject.getMessages().size() - 1);
         chatRecyclerView.scrollToPosition(chatAdapter.getItemCount() - 1);
         chatInput.setText("");
 
-        // Build REST payload: contents = prior history + this user turn
+        // Build REST payload
         GenerateContentRequest req = new GenerateContentRequest();
         req.contents = new ArrayList<>();
 
-        // (Optional) guardrail/system prompt as first turn (send as 'user' for compatibility)
-        req.contents.add(contentOf("user",
-                partText("You are a coding-only assistant. Keep answers concise and code-first. " +
-                        "If prompt is not about programming, reply exactly: " +
-                        "I'm not suitable to answer this. If you have any programming question I may help you.")));
+        // --- NEW: strong, consistent system instruction to force JSON schema ---
+        req.systemInstruction = contentOf("system", partText(
+                "You are a coding assistant.\n" +
+                        "Always respond ONLY with strict JSON using this schema:\n" +
+                        "{\n" +
+                        "  \"code\": string,          // the primary code answer or empty string\n" +
+                        "  \"language\": string,      // e.g., \"python\", \"javascript\", \"java\", may be empty\n" +
+                        "  \"runtime\": string,       // runtime/versions/libraries or empty\n" +
+                        "  \"notes\": string          // short plain-text hints or empty\n" +
+                        "}\n" +
+                        "Do not include markdown, backticks, or any text outside the JSON object."
+        ));
 
-        // prior messages
+        // Guardrail (kept, but lighter; main control is systemInstruction)
+        req.contents.add(contentOf("user",
+                partText("If prompt is not about programming, reply with an empty JSON having empty strings for all fields.")));
+
+        // prior messages (strip potential fences for cleaner context)
         for (Message m : currentProject.getMessages()) {
             Content c = new Content();
-            c.role = m.getRole(); // "user" | "model"
+            c.role = m.getRole();
             c.parts = new ArrayList<>();
             if (m.getText() != null && !m.getText().isEmpty()) {
-                c.parts.add(partText(m.getText()));
+                c.parts.add(partText(stripMarkdownFenceIfAny(m.getText())));
             }
-            // if any history items had images stored as URIs, you can resolve & attach similarly
             req.contents.add(c);
         }
 
-        // add current user turn image (if any) + text
+        // optional image
         if (selectedImageBitmap != null) {
-            // add user image part
             Content imgTurn = new Content();
             imgTurn.role = "user";
             imgTurn.parts = new ArrayList<>();
@@ -186,7 +208,7 @@ public class ChatFragment extends Fragment {
         selectedImageUri = null;
         imagePreviewContainer.setVisibility(View.GONE);
 
-        // Compose final user text turn (so image and text are separate parts/turns)
+        // include current code (raw) for context
         if (!messageText.isEmpty()) {
             String fullPrompt = messageText;
             if (currentProject.getCode() != null && !currentProject.getCode().isEmpty()) {
@@ -195,15 +217,18 @@ public class ChatFragment extends Fragment {
             req.contents.add(contentOf("user", partText(fullPrompt)));
         }
 
-        // Fire the HTTP call on a background thread
+        // HTTP call
         Executor executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             try {
                 String reply = callGemini(req);
                 if (reply == null) reply = "(no response)";
 
-                // add model message to history
-                Message aiMessage = new Message(reply, "model");
+                // Pretty-print for DISPLAY only (chat bubble)
+                String displayReply = formatJsonInsideText(reply);
+
+                // add model message to history (display version)
+                Message aiMessage = new Message(displayReply, "model");
                 currentProject.addMessage(aiMessage);
 
                 if (FirebaseAuth.getInstance().getCurrentUser() != null) {
@@ -213,19 +238,24 @@ public class ChatFragment extends Fragment {
                     });
                 }
 
-                final String code = extractCode(reply);
+                // --- NEW: parse strict JSON first, fallback to code fence ---
+                CodePayload payload = parseReplyToPayload(reply);
+                final String codeToApply = (payload.code != null && !payload.code.isEmpty())
+                        ? payload.code
+                        : extractCode(reply); // fallback if model slipped
+
+                final String lang   = payload.language;
+                final String run    = payload.runtime;
+                final String notes  = payload.notes;
+
                 requireActivity().runOnUiThread(() -> {
                     loadingIndicator.setVisibility(View.GONE);
                     chatInput.setEnabled(true);
                     chatAdapter.notifyItemInserted(currentProject.getMessages().size() - 1);
                     chatRecyclerView.scrollToPosition(chatAdapter.getItemCount() - 1);
 
-                    if (!code.isEmpty()) {
-                        CodeEditorFragment editorFragment =
-                                (CodeEditorFragment) getParentFragmentManager().findFragmentByTag("f1");
-                        if (editorFragment != null) {
-                            editorFragment.setCode(code);
-                        }
+                    if (codeToApply != null && !codeToApply.isEmpty()) {
+                        aiBus.publish(lang, run, notes, codeToApply);
                     }
                 });
 
@@ -262,75 +292,186 @@ public class ChatFragment extends Fragment {
         }
     }
 
+    // --- NEW: strict JSON parsing with fallback ---
+    private CodePayload parseReplyToPayload(String reply) {
+        CodePayload out = new CodePayload();
+        if (reply == null || reply.isEmpty()) return out;
+
+        // Try parse as whole JSON
+        try {
+            JsonElement el = JsonParser.parseString(reply);
+            if (el != null && el.isJsonObject()) {
+                JsonObject obj = el.getAsJsonObject();
+                out.code     = safeString(obj, "code");
+                out.language = safeString(obj, "language");
+                out.runtime  = safeString(obj, "runtime");
+                out.notes    = safeString(obj, "notes");
+                return out;
+            }
+        } catch (Exception ignore) { /* not a bare JSON object */ }
+
+        // Try to extract the first JSON object substring from prose
+        String embedded = extractFirstJsonObject(reply);
+        if (embedded != null) {
+            try {
+                JsonObject obj = JsonParser.parseString(embedded).getAsJsonObject();
+                out.code     = safeString(obj, "code");
+                out.language = safeString(obj, "language");
+                out.runtime  = safeString(obj, "runtime");
+                out.notes    = safeString(obj, "notes");
+                return out;
+            } catch (Exception ignore) { /* fall through */ }
+        }
+
+        // Nothing JSON-like found; leave empty (caller will fallback to fenced code).
+        return out;
+    }
+
+    private static String safeString(JsonObject obj, String key) {
+        try {
+            if (obj == null || !obj.has(key) || obj.get(key).isJsonNull()) return "";
+            return obj.get(key).getAsString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private String extractFirstJsonObject(String text) {
+        if (text == null) return null;
+        int i = 0, n = text.length();
+        while (i < n) {
+            int brace = text.indexOf('{', i);
+            if (brace == -1) return null;
+            int end = findMatchingJsonEnd(text, brace);
+            if (end == -1) return null;
+            String cand = text.substring(brace, end + 1).trim();
+            // quick sanity check
+            if (cand.startsWith("{") && cand.endsWith("}")) return cand;
+            i = brace + 1;
+        }
+        return null;
+    }
+
     private String extractCode(String text) {
         if (text == null) return "";
         int start = text.indexOf("```");
         if (start == -1) return "";
         int end = text.indexOf("```", start + 3);
         if (end == -1) return "";
-        return text.substring(start + 3, end);
+        // Strip optional language tag like ```html\n
+        int nl = text.indexOf('\n', start + 3);
+        int contentStart = (nl != -1 && nl < end) ? nl + 1 : start + 3;
+        return text.substring(contentStart, end);
     }
 
-    public void setProject(Project project) {
-        this.currentProject = project;
+    public void setProject(Project project) { this.currentProject = project; }
+
+    // ---------- JSON formatting helpers (DISPLAY ONLY) ----------
+    private String stripMarkdownFenceIfAny(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        if (t.startsWith("```")) {
+            int firstNl = t.indexOf('\n');
+            int lastFence = t.lastIndexOf("```");
+            if (firstNl != -1 && lastFence > firstNl) {
+                String inner = t.substring(firstNl + 1, lastFence);
+                return inner.trim();
+            }
+        }
+        return s;
     }
 
-    // ---- helpers to build parts/contents ----
-    private static Content contentOf(String role, Part... parts) {
-        Content c = new Content();
-        c.role = role;
-        c.parts = new ArrayList<>();
-        for (Part p : parts) c.parts.add(p);
-        return c;
+    private String formatJsonInsideText(String text) {
+        if (text == null || text.isEmpty()) return text;
+
+        StringBuilder out = new StringBuilder(text.length() + 128);
+        int i = 0, n = text.length();
+
+        while (i < n) {
+            int brace = text.indexOf('{', i);
+            int bracket = text.indexOf('[', i);
+            int start = (brace == -1) ? bracket : (bracket == -1 ? brace : Math.min(brace, bracket));
+
+            if (start == -1) { out.append(text, i, n); break; }
+            out.append(text, i, start);
+
+            int end = findMatchingJsonEnd(text, start);
+            if (end == -1) { out.append(text.substring(start)); break; }
+
+            String candidate = text.substring(start, end + 1);
+            String pretty = candidate;
+            try { pretty = prettifyJson(candidate); }
+            catch (Exception e) {
+                String fixed = trySanitizeJson(candidate);
+                try { if (fixed != null) pretty = prettifyJson(fixed); }
+                catch (Exception ignore) { pretty = candidate; }
+            }
+
+            out.append("\n```json\n").append(pretty).append("\n```\n");
+            i = end + 1;
+        }
+
+        return out.toString().replaceAll("(?s)```\\s*\\n(\\s*[\\[{].*?)\\n```", "```json\n$1\n```");
     }
 
-    private static Part partText(String text) {
-        Part p = new Part();
-        p.text = text;
-        return p;
+    private int findMatchingJsonEnd(String text, int start) {
+        int depth = 0; boolean inString = false; char quote = 0; boolean esc = false;
+        for (int i = start; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (inString) {
+                if (esc) esc = false;
+                else if (c == '\\') esc = true;
+                else if (c == quote) inString = false;
+                continue;
+            }
+            if (c == '"' || c == '\'') { inString = true; quote = c; continue; }
+            if (c == '{' || c == '[') depth++;
+            else if (c == '}' || c == ']') { depth--; if (depth == 0) return i; }
+        }
+        return -1;
     }
 
-    private static Part partInlineImage(Bitmap bmp, String mimeType) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        // Encode as PNG by default
-        bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
-        String b64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+    private String prettifyJson(String raw) {
+        JsonElement el = JsonParser.parseString(raw);
+        return new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(el);
+    }
 
-        Part p = new Part();
-        p.inlineData = new InlineData();
-        p.inlineData.mimeType = mimeType;
-        p.inlineData.data = b64;
-        return p;
+    private String trySanitizeJson(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        t = t.replace('“', '"').replace('”', '"').replace('’', '\'');
+        t = t.replaceAll(",(\\s*[}\\]])", "$1");
+        return t;
     }
 
     // ---- minimal DTOs for Gemini REST ----
     static class GenerateContentRequest {
+        @SerializedName("systemInstruction") Content systemInstruction; // NEW
         List<Content> contents;
     }
+    static class GenerateContentResponse { Candidate[] candidates; }
+    static class Candidate { Content content; @SerializedName("finishReason") String finishReason; }
+    static class Content { String role; List<Part> parts; }
+    static class Part { String text; @SerializedName("inline_data") InlineData inlineData; }
+    static class InlineData { @SerializedName("mime_type") String mimeType; String data; }
 
-    static class GenerateContentResponse {
-        Candidate[] candidates;
+    private static Content contentOf(String role, Part... parts) {
+        Content c = new Content(); c.role = role; c.parts = new ArrayList<>();
+        for (Part p : parts) c.parts.add(p); return c;
+    }
+    private static Part partText(String text) { Part p = new Part(); p.text = text; return p; }
+    private static Part partInlineImage(Bitmap bmp, String mimeType) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
+        String b64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+        Part p = new Part(); p.inlineData = new InlineData(); p.inlineData.mimeType = mimeType; p.inlineData.data = b64; return p;
     }
 
-    static class Candidate {
-        Content content;
-        @SerializedName("finishReason") String finishReason;
-    }
-
-    static class Content {
-        String role;           // "user" | "model"
-        List<Part> parts;      // text and/or inline_data
-    }
-
-    static class Part {
-        String text;           // optional
-        @SerializedName("inline_data")
-        InlineData inlineData; // optional
-    }
-
-    static class InlineData {
-        @SerializedName("mime_type")
-        String mimeType;
-        String data; // base64
+    // --- payload for editor bus ---
+    static class CodePayload {
+        String code = "";
+        String language = "";
+        String runtime = "";
+        String notes = "";
     }
 }

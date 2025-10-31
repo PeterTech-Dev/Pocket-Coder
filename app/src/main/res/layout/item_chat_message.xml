@@ -1,61 +1,259 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/message_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
     android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp">
+    android:paddingBottom="8dp">
 
     <RelativeLayout
         android:id="@+id/bubble_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:padding="8dp">
+
+        <!-- Normal text path (for non-JSON answers) -->
+        <TextView
+            android:id="@+id/message_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#111111"
+            android:textSize="14sp"
+            android:lineSpacingExtra="2dp"
+            android:autoLink="web" />
 
         <ImageView
             android:id="@+id/message_image"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/message_text"
+            android:layout_marginTop="6dp"
+            android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            android:visibility="gone"
-            android:layout_marginBottom="8dp"/>
+            android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/message_text"
-            android:layout_width="wrap_content"
+        <!-- ========================= -->
+        <!-- Parsed card (pretty view) -->
+        <!-- ========================= -->
+        <LinearLayout
+            android:id="@+id/parsed_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/message_image"
-            android:padding="12dp"
-            android:textColor="@color/textColorPrimary"
-            android:textSize="16sp" />
+            android:layout_marginTop="6dp"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignEnd="@id/message_text"
-            android:layout_alignBottom="@id/message_text"
-            android:orientation="horizontal">
+            <!-- badges -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
 
-            <ImageButton
-                android:id="@+id/copy_code_button"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_code"
-                android:visibility="gone" />
+                <TextView
+                    android:id="@+id/badge_language"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="Language: Python"
+                    android:textSize="12sp"
+                    android:textColor="#0EA5E9"
+                    android:background="@drawable/bg_chip"
+                    android:layout_marginEnd="6dp"/>
 
-            <ImageButton
-                android:id="@+id/copy_button_bubble"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_copy"
-                android:visibility="gone" />
-                
+                <TextView
+                    android:id="@+id/badge_runtime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="Runtime: 3"
+                    android:textSize="12sp"
+                    android:textColor="#22C55E"
+                    android:background="@drawable/bg_chip"/>
+            </LinearLayout>
+
+            <!-- notes / summary -->
+            <TextView
+                android:id="@+id/parsed_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="A short summary appears here."
+                android:textSize="13sp"
+                android:textColor="#222222"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- code block (collapsible) -->
+            <RelativeLayout
+                android:id="@+id/code_block"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_code_block"
+                android:padding="10dp">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:fadeScrollbars="false">
+
+                    <TextView
+                        android:id="@+id/parsed_code"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:textColor="#ECEFF1"
+                        android:textSize="13sp"
+                        android:textIsSelectable="true"
+                        android:maxLines="16" />
+                </HorizontalScrollView>
+
+                <!-- gradient fade when collapsed -->
+                <View
+                    android:id="@+id/code_fade"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_alignBottom="@id/parsed_code"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/bg_code_fade"
+                    android:visibility="gone"/>
+
+                <!-- actions -->
+                <LinearLayout
+                    android:id="@+id/code_actions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="6dp"
+                    android:layout_below="@id/parsed_code">
+
+                    <ImageButton
+                        android:id="@+id/btn_copy_code"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/copy_code"
+                        android:src="@drawable/ic_code"
+                        app:tint="#A0A0A0" />
+
+                    <ImageButton
+                        android:id="@+id/btn_expand_code"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/expand"
+                        android:src="@drawable/ic_expand_more_24"
+                        app:tint="#A0A0A0" />
+                </LinearLayout>
+            </RelativeLayout>
         </LinearLayout>
 
-    </RelativeLayout>
+        <!-- ========================= -->
+        <!-- Raw JSON (pretty printed) -->
+        <!-- ========================= -->
+        <LinearLayout
+            android:id="@+id/json_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/parsed_container"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_code_block"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:visibility="gone">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/json_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="RAW JSON"
+                    android:textAllCaps="true"
+                    android:textColor="#7FC7FF"
+                    android:textStyle="bold"
+                    android:textSize="12sp" />
+
+                <ImageButton
+                    android:id="@+id/btn_copy_json"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/copy"
+                    android:src="@drawable/ic_copy"
+                    app:tint="#A0A0A0" />
+
+                <ImageButton
+                    android:id="@+id/btn_expand_json"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/expand"
+                    android:src="@drawable/ic_expand_more_24"
+                    app:tint="#A0A0A0" />
+            </LinearLayout>
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <TextView
+                    android:id="@+id/json_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="2dp"
+                    android:fontFamily="monospace"
+                    android:textColor="#ECEFF1"
+                    android:textSize="13sp"
+                    android:textIsSelectable="true"
+                    android:maxLines="14" />
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <!-- old copy buttons for non-JSON text (keep if you still want them) -->
+        <ImageButton
+            android:id="@+id/copy_button_bubble"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_copy"
+            app:tint="#A0A0A0"
+            android:contentDescription="@string/copy"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/copy_code_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_below="@id/copy_button_bubble"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_code"
+            app:tint="#A0A0A0"
+            android:contentDescription="@string/copy_code"
+            android:visibility="gone" />
+
+    </RelativeLayout>
 </LinearLayout>

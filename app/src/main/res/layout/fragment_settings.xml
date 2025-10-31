@@ -21,11 +21,34 @@
         android:text="Dark Mode"        
         android:textSize="18sp"/>
 
-    <Spinner
-        android:id="@+id/font_spinner"
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switch_auto_apply"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"/>
+        android:text="Auto-apply AI code to editor" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switch_show_diffs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show diff preview" />
+
+
+    <!-- Editor font -->
+    <Spinner
+        android:id="@+id/spinner_editor_font"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Change Code Editor Font" />
+
+    <!-- Console font -->
+    <Spinner
+        android:id="@+id/spinner_console_font"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Change Console Editor Font" />
 
     <Button
         android:id="@+id/clear_history_button"

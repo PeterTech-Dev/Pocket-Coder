@@ -3,9 +3,48 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Backend toggle -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/backend_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/toggle_auto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Auto"
+            app:checkedIconVisible="false"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/toggle_judge0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fast"
+            app:checkedIconVisible="false"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/toggle_live"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Live"
+            app:checkedIconVisible="false"/>
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- Code editor fills the rest -->
     <io.github.rosemoe.sora.widget.CodeEditor
         android:id="@+id/code_editor"
         android:layout_width="0dp"
@@ -13,35 +52,23 @@
         android:importantForAccessibility="no"
         tools:ignore="SpeakableTextPresentCheck"
         tools:text="// Write your code here"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/console_output" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/console_output"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:background="?attr/colorSurface"
-        android:padding="8dp"
-        android:textColor="?android:attr/textColorPrimary"
-        style="@style/TextAppearance.MaterialComponents.Body2"
-        tools:text="Console output will appear here..."
+        app:layout_constraintTop_toBottomOf="@id/backend_toggle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <!-- Run FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_run"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:contentDescription="Run Code"
-        android:src="@drawable/ic_run"
+        android:contentDescription="Run"
         app:srcCompat="@android:drawable/ic_media_play"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <!-- Small progress -->
     <ProgressBar
         android:id="@+id/progress"
         style="?android:attr/progressBarStyleSmall"

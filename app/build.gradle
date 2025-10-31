@@ -7,7 +7,6 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.kapt'
-    id 'com.chaquo.python'
 }
 
 // ---- load local.properties once (no duplicates) ----
@@ -38,23 +37,6 @@ android {
         // Chaquopy requires ABIs to be declared
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
-        }
-
-        // Chaquopy: declare Python deps here
-        python {
-            buildPython "C:/Users/Peter/AppData/Local/Programs/Python/Python310/python.exe"
-
-            pip {
-                // keep it minimal at first to confirm the toolchain works
-                install "requests"
-            }
-        }
-    }
-
-    // so Chaquopy can find your Python files
-    sourceSets {
-        main {
-            python.srcDir "src/main/python"
         }
     }
 
@@ -89,7 +71,7 @@ dependencies {
 
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0"
     implementation "com.google.guava:guava:32.0.1-android"
-    implementation "org.mozilla:rhino:1.7.14"
+    implementation "androidx.recyclerview:recyclerview:1.3.2"
 
     implementation "io.noties.markwon:core:4.6.2"
     implementation "io.noties.markwon:image:4.6.2"
@@ -102,6 +84,9 @@ dependencies {
     kapt "com.github.bumptech.glide:compiler:4.12.0"
 
     implementation "io.github.Rosemoe.sora-editor:editor:0.21.0"
+    implementation 'org.jsoup:jsoup:1.17.2'
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit

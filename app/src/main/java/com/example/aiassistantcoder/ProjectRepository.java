@@ -62,7 +62,7 @@ public class ProjectRepository {
         data.put("createdAt", FieldValue.serverTimestamp());
         data.put("tags", project.getTags());
         data.put("code", project.getCode());
-        
+
         List<Map<String, Object>> msgs = new ArrayList<>();
         for (Message m : project.getMessages()) {
             Map<String, Object> mm = new HashMap<>();

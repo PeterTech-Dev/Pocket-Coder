@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="code_fonts_labels">
+        <item>JetBrains Mono</item>
+        <item>Fira Code</item>
+        <item>Roboto Mono</item>
+        <item>Monospace (system)</item>
+    </string-array>
+
+    <string-array name="code_fonts_values">
+        <!-- Use resource names or sentinel values -->
+        <item>jetbrains_mono</item>
+        <item>fira_code</item>
+        <item>roboto_mono</item>
+        <item>system_monospace</item>
+    </string-array>
+</resources>

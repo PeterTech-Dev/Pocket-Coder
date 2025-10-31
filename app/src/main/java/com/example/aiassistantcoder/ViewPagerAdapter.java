@@ -15,7 +15,6 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
     private final String aiRuntime;
     private final String aiNotes;
 
-    // ✅ Updated constructor — includes AI data
     public ViewPagerAdapter(@NonNull FragmentActivity fragmentActivity,
                             Project project,
                             String aiCode,
