@@ -1,0 +1,75 @@
+{
+  "java": [
+    { "trigger": "System.", "insertText": "System.out.println(${1:message});" },
+    { "trigger": "for (", "insertText": "for (int i = 0; i < ${1:count}; i++) {\n    $0\n}" },
+    { "trigger": "if (", "insertText": "if (${1:condition}) {\n    $0\n}" },
+    { "trigger": "else", "insertText": "else {\n    $0\n}" },
+    { "trigger": "class ", "insertText": "public class ${1:ClassName} {\n    $0\n}" },
+    { "trigger": "try", "insertText": "try {\n    $0\n} catch (Exception e) {\n    e.printStackTrace();\n}" },
+    { "trigger": "public ", "insertText": "public ${1:void} ${2:methodName}(${3:args}) {\n    $0\n}" }
+  ],
+
+  "kotlin": [
+    { "trigger": "println(", "insertText": "println(${1:message})" },
+    { "trigger": "for (", "insertText": "for (i in 0 until ${1:count}) {\n    $0\n}" },
+    { "trigger": "if (", "insertText": "if (${1:condition}) {\n    $0\n}" },
+    { "trigger": "class ", "insertText": "class ${1:ClassName} {\n    $0\n}" },
+    { "trigger": "fun ", "insertText": "fun ${1:name}(${2:params}): ${3:ReturnType} {\n    $0\n}" }
+  ],
+
+  "python": [
+    { "trigger": "def ", "insertText": "def ${1:function_name}(${2:args}):\n    $0" },
+    { "trigger": "for ", "insertText": "for ${1:i} in range(${2:count}):\n    $0" },
+    { "trigger": "if ", "insertText": "if ${1:condition}:\n    $0" },
+    { "trigger": "class ", "insertText": "class ${1:ClassName}:\n    def __init__(self):\n        $0" },
+    { "trigger": "print(", "insertText": "print(${1:value})" },
+    { "trigger": "import ", "insertText": "import ${1:module}" }
+  ],
+
+  "cpp": [
+    { "trigger": "std::cout", "insertText": "std::cout << ${1:message} << std::endl;" },
+    { "trigger": "for (", "insertText": "for (int i = 0; i < ${1:count}; i++) {\n    $0\n}" },
+    { "trigger": "if (", "insertText": "if (${1:condition}) {\n    $0\n}" },
+    { "trigger": "class ", "insertText": "class ${1:ClassName} {\npublic:\n    ${1:ClassName}();\n    ~$1();\n};" }
+  ],
+
+  "csharp": [
+    { "trigger": "Console.", "insertText": "Console.WriteLine(${1:message});" },
+    { "trigger": "for (", "insertText": "for (int i = 0; i < ${1:count}; i++) {\n    $0\n}" },
+    { "trigger": "if (", "insertText": "if (${1:condition}) {\n    $0\n}" },
+    { "trigger": "class ", "insertText": "public class ${1:ClassName} {\n    $0\n}" },
+    { "trigger": "public ", "insertText": "public ${1:void} ${2:MethodName}(${3:args}) {\n    $0\n}" }
+  ],
+
+  "html": [
+    { "trigger": "<html", "insertText": "<!DOCTYPE html>\n<html>\n<head>\n    <title>${1:Title}</title>\n</head>\n<body>\n    $0\n</body>\n</html>" },
+    { "trigger": "<div", "insertText": "<div>${1:content}</div>" },
+    { "trigger": "<a", "insertText": "<a href=\"${1:#}\">${2:text}</a>" },
+    { "trigger": "<img", "insertText": "<img src=\"${1:src}\" alt=\"${2:alt}\" />" },
+    { "trigger": "<button", "insertText": "<button>${1:Click}</button>" }
+  ],
+
+  "css": [
+    { "trigger": ".", "insertText": ".${1:classname} {\n    $0\n}" },
+    { "trigger": "#", "insertText": "#${1:id} {\n    $0\n}" },
+    { "trigger": "display:", "insertText": "display: ${1:flex};" },
+    { "trigger": "transition", "insertText": "transition: ${1:all} ${2:0.3s} ease;" }
+  ],
+
+  "javascript": [
+    { "trigger": "function ", "insertText": "function ${1:name}(${2:params}) {\n    $0\n}" },
+    { "trigger": "console.", "insertText": "console.log(${1:message});" },
+    { "trigger": "if (", "insertText": "if (${1:condition}) {\n    $0\n}" },
+    { "trigger": "for (", "insertText": "for (let i = 0; i < ${1:length}; i++) {\n    $0\n}" },
+    { "trigger": "const ", "insertText": "const ${1:name} = (${2:params}) => {\n    $0\n};" }
+  ],
+
+  "php": [
+    { "trigger": "<?php", "insertText": "<?php\n$0\n?>" },
+    { "trigger": "echo ", "insertText": "echo \"${1:text}\";" },
+    { "trigger": "if (", "insertText": "if (${1:condition}) {\n    $0\n}" },
+    { "trigger": "for (", "insertText": "for ($i = 0; $i < ${1:count}; $i++) {\n    $0\n}" },
+    { "trigger": "function ", "insertText": "function ${1:name}(${2:args}) {\n    $0\n}" },
+    { "trigger": "class ", "insertText": "class ${1:ClassName} {\n    $0\n}" }
+  ]
+}

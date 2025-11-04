@@ -1,0 +1,189 @@
+{
+  "languages": [
+    {
+      "name": "batchfile",
+      "scopeName": "source.batchfile",
+      "grammar": "tm/batchfile.tmLanguage.json"
+    },
+    {
+      "name": "c",
+      "scopeName": "source.c",
+      "grammar": "tm/c.tmLanguage.json"
+    },
+    {
+      "name": "cpp-embedded-macro",
+      "scopeName": "source.cpp.embedded.macro",
+      "grammar": "tm/cpp.embedded.macro.tmLanguage.json"
+    },
+    {
+      "name": "cpp",
+      "scopeName": "source.cpp",
+      "grammar": "tm/cpp.tmLanguage.json"
+    },
+    {
+      "name": "csharp",
+      "scopeName": "source.cs",
+      "grammar": "tm/csharp.tmLanguage.json"
+    },
+    {
+      "name": "css",
+      "scopeName": "source.css",
+      "grammar": "tm/css.tmLanguage.json"
+    },
+    {
+      "name": "cuda-cpp",
+      "scopeName": "source.cuda-cpp",
+      "grammar": "tm/cuda-cpp.tmLanguage.json"
+    },
+    {
+      "name": "go",
+      "scopeName": "source.go",
+      "grammar": "tm/go.tmLanguage.json"
+    },
+    {
+      "name": "groovy",
+      "scopeName": "source.groovy",
+      "grammar": "tm/groovy.tmLanguage.json"
+    },
+    {
+      "name": "html",
+      "scopeName": "text.html.basic",
+      "grammar": "tm/html.tmLanguage.json"
+    },
+    {
+      "name": "html-derivative",
+      "scopeName": "text.html.derivative",
+      "grammar": "tm/html-derivative.tmLanguage.json"
+    },
+    {
+      "name": "java",
+      "scopeName": "source.java",
+      "grammar": "tm/java.tmLanguage.json"
+    },
+    {
+      "name": "javascript",
+      "scopeName": "source.js",
+      "grammar": "tm/JavaScript.tmLanguage.json"
+    },
+    {
+      "name": "javascriptreact",
+      "scopeName": "source.js.jsx",
+      "grammar": "tm/JavaScriptReact.tmLanguage.json"
+    },
+    {
+      "name": "jsdoc-js",
+      "scopeName": "documentation.injection.js.jsx",
+      "grammar": "tm/jsdoc.js.injection.tmLanguage.json"
+    },
+    {
+      "name": "jsdoc-ts",
+      "scopeName": "documentation.injection.ts",
+      "grammar": "tm/jsdoc.ts.injection.tmLanguage.json"
+    },
+    {
+      "name": "json",
+      "scopeName": "source.json",
+      "grammar": "tm/JSON.tmLanguage.json"
+    },
+    {
+      "name": "jsonc",
+      "scopeName": "source.json.comments",
+      "grammar": "tm/JSONC.tmLanguage.json"
+    },
+    {
+      "name": "jsonl",
+      "scopeName": "source.json.lines",
+      "grammar": "tm/JSONL.tmLanguage.json"
+    },
+    {
+      "name": "lua",
+      "scopeName": "source.lua",
+      "grammar": "tm/lua.tmLanguage.json"
+    },
+    {
+      "name": "magicpython",
+      "scopeName": "source.python",
+      "grammar": "tm/MagicPython.tmLanguage.json"
+    },
+    {
+      "name": "magicregexp",
+      "scopeName": "source.regexp.python",
+      "grammar": "tm/MagicRegExp.tmLanguage.json"
+    },
+    {
+      "name": "php",
+      "scopeName": "source.php",
+      "grammar": "tm/php.tmLanguage.json"
+    },
+    {
+      "name": "platform",
+      "scopeName": "source.c.platform",
+      "grammar": "tm/platform.tmLanguage.json"
+    },
+    {
+      "name": "powershell",
+      "scopeName": "source.powershell",
+      "grammar": "tm/powershell.tmLanguage.json"
+    },
+    {
+      "name": "regex-javascript",
+      "scopeName": "source.js.regexp",
+      "grammar": "tm/Regular Expressions (JavaScript).tmLanguage"
+    },
+    {
+      "name": "ruby",
+      "scopeName": "source.ruby",
+      "grammar": "tm/ruby.tmLanguage.json"
+    },
+    {
+      "name": "rust",
+      "scopeName": "source.rust",
+      "grammar": "tm/rust.tmLanguage.json"
+    },
+    {
+      "name": "sassdoc",
+      "scopeName": "source.sassdoc",
+      "grammar": "tm/sassdoc.tmLanguage.json"
+    },
+    {
+      "name": "scss",
+      "scopeName": "source.css.scss",
+      "grammar": "tm/scss.tmLanguage.json"
+    },
+    {
+      "name": "snippets",
+      "scopeName": "source.json.comments.snippets",
+      "grammar": "tm/snippets.tmLanguage.json"
+    },
+    {
+      "name": "sql",
+      "scopeName": "source.sql",
+      "grammar": "tm/sql.tmLanguage.json"
+    },
+    {
+      "name": "swift",
+      "scopeName": "source.swift",
+      "grammar": "tm/swift.tmLanguage.json"
+    },
+    {
+      "name": "typescript",
+      "scopeName": "source.ts",
+      "grammar": "tm/TypeScript.tmLanguage.json"
+    },
+    {
+      "name": "typescriptreact",
+      "scopeName": "source.tsx",
+      "grammar": "tm/TypeScriptReact.tmLanguage.json"
+    },
+    {
+      "name": "xml",
+      "scopeName": "text.xml",
+      "grammar": "tm/xml.tmLanguage.json"
+    },
+    {
+      "name": "xsl",
+      "scopeName": "text.xml.xsl",
+      "grammar": "tm/xsl.tmLanguage.json"
+    }
+  ]
+}
