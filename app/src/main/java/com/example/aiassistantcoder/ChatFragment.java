@@ -60,6 +60,7 @@ public class ChatFragment extends Fragment {
     private ChatAdapter chatAdapter;
     private Bitmap selectedImageBitmap;
     private Uri selectedImageUri;
+    private String latestEditorCode = "";
 
     // --- HTTP / JSON ---
     private final OkHttpClient http = new OkHttpClient();
@@ -103,6 +104,9 @@ public class ChatFragment extends Fragment {
         chatRecyclerView = view.findViewById(R.id.chat_recycler_view);
 
         aiBus = new ViewModelProvider(requireActivity()).get(AiUpdateViewModel.class);
+        aiBus.getEditorCode().observe(getViewLifecycleOwner(), code -> {
+            if (code != null) latestEditorCode = code;
+        });
 
         ImageButton sendButton = view.findViewById(R.id.send_button);
         ImageButton imageInputButton = view.findViewById(R.id.image_input_button);
@@ -209,10 +213,13 @@ public class ChatFragment extends Fragment {
         imagePreviewContainer.setVisibility(View.GONE);
 
         // include current code (raw) for context
+        String editorSnapshot = (latestEditorCode != null && !latestEditorCode.isEmpty())
+                ? latestEditorCode
+                : (currentProject.getCode() == null ? "" : currentProject.getCode());
         if (!messageText.isEmpty()) {
             String fullPrompt = messageText;
-            if (currentProject.getCode() != null && !currentProject.getCode().isEmpty()) {
-                fullPrompt += "\n\nUser-edited code:\n" + currentProject.getCode();
+            if (!editorSnapshot.isEmpty()) {
+                fullPrompt += "\n\nUser-edited code (current editor snapshot):\n" + editorSnapshot;
             }
             req.contents.add(contentOf("user", partText(fullPrompt)));
         }

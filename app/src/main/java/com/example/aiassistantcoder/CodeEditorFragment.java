@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +20,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.view.KeyEvent;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.chip.Chip;
@@ -46,6 +48,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import io.github.rosemoe.sora.widget.CodeEditor;
+import io.github.rosemoe.sora.event.ContentChangeEvent;
+import io.github.rosemoe.sora.event.SubscriptionReceipt;
+import io.github.rosemoe.sora.langs.textmate.TextMateLanguage;
+import io.github.rosemoe.sora.langs.textmate.TextMateColorScheme;
+import io.github.rosemoe.sora.langs.textmate.registry.FileProviderRegistry;
+import io.github.rosemoe.sora.langs.textmate.registry.GrammarRegistry;
+import io.github.rosemoe.sora.langs.textmate.registry.ThemeRegistry;
+import io.github.rosemoe.sora.langs.textmate.registry.provider.AssetsFileResolver;
+import io.github.rosemoe.sora.langs.textmate.registry.model.ThemeModel;
+import io.github.rosemoe.sora.widget.schemes.EditorColorScheme;
+import org.eclipse.tm4e.core.registry.IThemeSource;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -71,10 +85,36 @@ public class CodeEditorFragment extends Fragment {
     // ---- ViewModels / Buses ----
     private ConsoleViewModel consoleVM;
     private AiUpdateViewModel aiBus;
+    private @Nullable SubscriptionReceipt<ContentChangeEvent> contentSub = null;
 
     // ---- Exec / handlers ----
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
+
+    // =================== AUTOCOMPLETE (LOCAL / STUB) ===================
+    private static final long AC_IDLE_MS = 300L;
+    private final Handler acHandler = new Handler(Looper.getMainLooper());
+    private final ArrayList<String> acSuggestions = new ArrayList<>();
+    private String acLastPrompt = "";
+    private LinearLayout inlineAcContainer;
+    private TextView inlineAcText;
+    private @Nullable String inlineProposal;
+    private final Runnable acDebounced = () -> {
+        String prompt = extractPromptForCompletion();
+        if (prompt == null || prompt.isEmpty()) { hideInlineSuggestion();; return; }
+        if (prompt.equals(acLastPrompt)) return;
+        acLastPrompt = prompt;
+        fetchLocalSuggestions(prompt); // replace with Gemini call later
+    };
+    private final Map<String, List<Snippet>> snippetsByLang = new HashMap<>();
+    private boolean snippetsLoaded = false;
+    private static final class Snippet {
+        final String trigger;
+        final String insertText;
+        Snippet(String t, String i) { trigger = t; insertText = i; }
+    }
+    private int lastSnippetTriggerLen = 0;
+
 
     // ---- Project / persistence ----
     private Project currentProject;
@@ -147,6 +187,8 @@ public class CodeEditorFragment extends Fragment {
         codeEditor = v.findViewById(R.id.code_editor);
         btnRun     = v.findViewById(R.id.btn_run);
         progress   = v.findViewById(R.id.progress);
+        initTextMateIfNeeded();
+        applyTextMateLanguageFromAi();
 
         toggleAuto   = v.findViewById(R.id.toggle_auto);
         toggleJudge0 = v.findViewById(R.id.toggle_judge0);
@@ -192,6 +234,7 @@ public class CodeEditorFragment extends Fragment {
             aiLang       = update.language;
             aiRuntime    = update.runtime;
             aiRunnerHint = update.notes;
+            applyTextMateLanguageFromAi();
 
             String meta = "";
             if (aiLang != null && !aiLang.isEmpty()) meta += aiLang;
@@ -210,7 +253,60 @@ public class CodeEditorFragment extends Fragment {
             restoreFromProjectOrCache();
         }
 
-        // Optional args
+        // Subscribe to Sora editor change events for debounced autosave + AI bus snapshot
+        contentSub = codeEditor.subscribeEvent(
+                ContentChangeEvent.class,
+                (event, publisher) -> {
+                    saveHandler.removeCallbacks(saveRunnable);
+                    saveHandler.postDelayed(saveRunnable, SAVE_DEBOUNCE_MS);
+                    if (aiBus != null) aiBus.publishEditorCode(getCode());
+                    acHandler.removeCallbacks(acDebounced);
+                    acHandler.postDelayed(acDebounced, AC_IDLE_MS);
+                });
+
+        codeEditor.setOnKeyListener((view1, keyCode, e) -> {
+            if (e.getAction() != KeyEvent.ACTION_DOWN) return false;
+
+            boolean isTab   = (keyCode == KeyEvent.KEYCODE_TAB);
+            boolean isEnter = (keyCode == KeyEvent.KEYCODE_ENTER);
+
+            if ((isTab || isEnter)
+                    && inlineAcContainer != null
+                    && inlineAcContainer.getVisibility() == View.VISIBLE
+                    && inlineProposal != null
+                    && !inlineProposal.isEmpty()) {
+
+                int line = codeEditor.getCursor().getLeftLine();
+                int col  = codeEditor.getCursor().getLeftColumn();
+                String proposal = inlineProposal;
+
+                if (lastSnippetTriggerLen > 0) {
+                    int startCol = col - lastSnippetTriggerLen;
+                    if (startCol < 0) startCol = 0;
+                    codeEditor.getText().delete(line, startCol, line, col);
+                    col = startCol;
+                }
+
+                String toInsert = isEnter ? (proposal + "\n") : proposal;
+                codeEditor.getText().insert(line, col, toInsert);
+
+                hideInlineSuggestion();
+                // reset for next time
+                lastSnippetTriggerLen = 0;
+                return true;
+            }
+
+            return false;
+        });
+
+
+
+
+        inlineAcContainer = v.findViewById(R.id.inline_ac_container);
+        inlineAcText      = v.findViewById(R.id.inline_ac_text);
+        main.post(() -> { if (aiBus != null) aiBus.publishEditorCode(getCode()); });
+        ensureSnippetsLoaded();
+
         Bundle args = getArguments();
         if (args != null) {
             aiLang       = args.getString("ai_language");
@@ -283,7 +379,16 @@ public class CodeEditorFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         saveHandler.removeCallbacks(saveRunnable);
-        stopLiveSession("fragment-destroyed"); // prevent ghost sessions
+        acHandler.removeCallbacks(acDebounced);
+        hideInlineSuggestion();
+        if (contentSub != null) {
+            try {
+                contentSub.unsubscribe();
+            } catch (Throwable ignored) {
+            }
+            contentSub = null;
+        }
+        stopLiveSession("fragment-destroyed");
     }
 
     // ---------------- Project wiring & persistence ----------------
@@ -973,6 +1078,91 @@ public class CodeEditorFragment extends Fragment {
             return s;
         }
     }
+
+    // ---------- TextMate init + apply from AI ----------
+    private void initTextMateIfNeeded() {
+        try {
+            FileProviderRegistry.getInstance().addFileProvider(
+                    new AssetsFileResolver(requireContext().getAssets())
+            );
+
+            GrammarRegistry.getInstance().loadGrammars("tm/languages.json");
+
+            ThemeRegistry themeRegistry = ThemeRegistry.getInstance();
+            String themeName = "dark"; // must match file name without .json
+            String themePath = "themes/" + themeName + ".json";
+
+            ThemeModel model = new ThemeModel(
+                    IThemeSource.fromInputStream(
+                            FileProviderRegistry.getInstance().tryGetInputStream(themePath),
+                            themePath,
+                            null
+                    ),
+                    themeName
+            );
+            themeRegistry.loadTheme(model);
+            themeRegistry.setTheme(themeName);
+
+            // 4) tell the editor to use the TextMate color scheme from that theme
+            codeEditor.setColorScheme(TextMateColorScheme.create(themeRegistry));
+
+            // 6) pick some language so it highlights
+            codeEditor.setEditorLanguage(TextMateLanguage.create("source.python", true));
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+            printToConsole("TextMate init failed: " + t.getMessage() + "\n");
+        }
+    }
+
+
+
+
+
+    private void applyTextMateLanguageFromAi() {
+        if (codeEditor == null) return;
+
+        String scope;
+        if (aiLang == null || aiLang.trim().isEmpty()) {
+            scope = "source.js";
+        } else {
+            String lang = aiLang.trim().toLowerCase();
+            if (lang.contains("python") || lang.equals("py")) {
+                scope = "source.python";
+            } else if (lang.contains("typescript") || lang.equals("ts")) {
+                scope = "source.ts";
+            } else if (lang.contains("javascript") || lang.equals("js") || lang.contains("node")) {
+                if (lang.contains("react") || lang.contains("jsx")) {
+                    scope = "source.jsx";
+                } else {
+                    scope = "source.js";
+                }
+            } else if (lang.contains("html")) {
+                scope = "text.html.basic";
+            } else if (lang.contains("css")) {
+                scope = "source.css";
+            } else if (lang.contains("java")) {
+                scope = "source.java";
+            } else if (lang.contains("kotlin")) {
+                scope = "source.kotlin";
+            } else if (lang.contains("php")) {
+                scope = "source.php";
+            } else if (lang.contains("c#") || lang.contains("csharp")) {
+                scope = "source.cs";
+            } else if (lang.contains("c++") || lang.contains("cpp")) {
+                scope = "source.cpp";
+            } else {
+                scope = "source.js";
+            }
+        }
+
+        try {
+            codeEditor.setEditorLanguage(TextMateLanguage.create(scope, true));
+        } catch (Throwable t) {
+            printToConsole("TM language apply failed: " + t.getMessage() + "\n");
+        }
+    }
+
     private String optStatusDesc(JSONObject res) {
         try {
             if (res.has("status")) {
@@ -983,7 +1173,155 @@ public class CodeEditorFragment extends Fragment {
         return res.optString("status", "?");
     }
 
-    // ---------- HTML detection + beautify ----------
+    // ---------- AUTOCOMPLETE helpers (popup + local suggestions) ----------
+    private int dp(int value) {
+        float density = getResources().getDisplayMetrics().density;
+        return (int) (value * density);
+    }
+
+    private void showInlineSuggestion(@NonNull String suggestion) {
+        inlineProposal = suggestion;
+        if (inlineAcText != null) inlineAcText.setText(suggestion);
+        if (inlineAcContainer != null && inlineAcContainer.getVisibility() != View.VISIBLE) {
+            inlineAcContainer.setVisibility(View.VISIBLE);
+        }
+
+        if (inlineAcContainer != null) {
+            inlineAcContainer.setTranslationX(dp(8));
+            inlineAcContainer.setTranslationY(dp(8));
+        }
+    }
+
+    private void hideInlineSuggestion() {
+        inlineProposal = null;
+        if (inlineAcContainer != null) inlineAcContainer.setVisibility(View.GONE);
+    }
+
+    /** Safely extract ~last 20 lines before caret for AI prompt. */
+    private String extractPromptForCompletion() {
+        if (codeEditor == null || codeEditor.getText() == null) return "";
+        final String all = codeEditor.getText().toString();
+        int caret = codeEditor.getCursor() != null ? codeEditor.getCursor().getLeft() : 0;
+        if (caret <= 0 || all.isEmpty()) return "";
+        if (caret > all.length()) caret = all.length();
+
+        int idx = caret;
+        for (int k = 0; k < 20 && idx > 0; k++) {
+            int next = all.lastIndexOf('\n', idx - 1);
+            if (next < 0) { idx = 0; break; }
+            idx = next;
+        }
+        int from = (idx <= 0) ? 0 : (idx + 1);
+        if (from > caret) from = caret;
+        // Guard against StringIndexOutOfBounds (begin <= end)
+        if (from < 0) from = 0;
+        return all.substring(from, caret);
+    }
+
+    /** JSON-driven autocomplete from assets/snippets.json */
+    private void fetchLocalSuggestions(String prompt) {
+        ensureSnippetsLoaded();
+        if (prompt == null) {
+            hideInlineSuggestion();
+            lastSnippetTriggerLen = 0;
+            return;
+        }
+        String lang = currentLanguageKey();
+        List<Snippet> list = snippetsByLang.get(lang);
+        if (list == null || list.isEmpty()) {
+            hideInlineSuggestion();
+            lastSnippetTriggerLen = 0;
+            return;
+        }
+
+        String bestInsert = null;
+        int bestLen = -1;
+
+        for (Snippet sn : list) {
+            String trig = sn.trigger;
+            if (prompt.endsWith(trig) && trig.length() > bestLen) {
+                bestInsert = renderSnippet(sn.insertText);
+                bestLen = trig.length();
+            }
+        }
+
+        if (bestInsert != null && !bestInsert.isEmpty()) {
+            showInlineSuggestion(bestInsert);
+            lastSnippetTriggerLen = bestLen;
+        } else {
+            hideInlineSuggestion();
+            lastSnippetTriggerLen = 0;
+        }
+    }
+
+
+    private void ensureSnippetsLoaded() {
+        if (snippetsLoaded || getContext() == null) return;
+        try (InputStream is = requireContext().getAssets().open("snippets.json");
+             BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+            JSONObject root = new JSONObject(sb.toString());
+            // Android-friendly iteration
+            for (java.util.Iterator<String> it = root.keys(); it.hasNext(); ) {
+                String key = it.next();
+                JSONArray arr = root.optJSONArray(key);
+                if (arr == null) continue;
+
+                ArrayList<Snippet> list = new ArrayList<>();
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject o = arr.getJSONObject(i);
+                    String trig = o.optString("trigger", "");
+                    String text = o.optString("insertText", "");
+                    if (!trig.isEmpty() && !text.isEmpty()) {
+                        list.add(new Snippet(trig, text));
+                    }
+                }
+                if (!list.isEmpty()) {
+                    snippetsByLang.put(key.toLowerCase(), list);
+                }
+            }
+
+            snippetsLoaded = true;
+            printToConsole("Snippets loaded (" + snippetsByLang.size() + " langs).\n");
+        } catch (Exception e) {
+            printToConsole("Snippet load error: " + e.getMessage() + "\n");
+        }
+    }
+
+
+    private String currentLanguageKey() {
+        String l = (aiLang == null ? "" : aiLang.trim().toLowerCase());
+        if (l.contains("java") && !l.contains("javascript")) return "java";
+        if (l.contains("kotlin")) return "kotlin";
+        if (l.contains("python") || l.equals("py")) return "python";
+        if (l.contains("c#") || l.contains("csharp")) return "csharp";
+        if (l.contains("c++") || l.contains("cpp")) return "cpp";
+        if (l.contains("javascript") || l.equals("js") || l.contains("node")) return "javascript";
+        if (l.contains("html")) return "html";
+        if (l.contains("css")) return "css";
+        if (l.contains("php")) return "php";
+        // fallback by content
+        String src = getCode().trim().toLowerCase();
+        if (src.startsWith("<!doctype") || src.contains("<html")) return "html";
+        return "javascript";
+    }
+
+    private String renderSnippet(String insertText) {
+        String s = insertText;
+        s = s.replaceAll("\\$\\{\\d+:([^}]+)\\}", "$1"); // ${1:foo} -> foo
+        s = s.replaceAll("\\$\\d+", "");                 // $1, $2, $0 -> ""
+        return s;
+    }
+
+
+
+// ---------- HTML detection + beautify ----------
     private boolean looksLikeHtmlDoc(String s) {
         if (s == null) return false;
         String t = s.toLowerCase();

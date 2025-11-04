@@ -27,35 +27,63 @@
             android:layout_height="wrap_content"
             android:checked="true"
             android:text="Auto"
-            app:checkedIconVisible="false"/>
+            app:checkedIconVisible="false" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/toggle_judge0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Fast"
-            app:checkedIconVisible="false"/>
+            app:checkedIconVisible="false" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/toggle_live"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Live"
-            app:checkedIconVisible="false"/>
+            app:checkedIconVisible="false" />
     </com.google.android.material.chip.ChipGroup>
 
-    <!-- Code editor fills the rest -->
-    <io.github.rosemoe.sora.widget.CodeEditor
-        android:id="@+id/code_editor"
+    <!-- Editor container so we can overlay inline suggestions -->
+    <FrameLayout
+        android:id="@+id/editor_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:importantForAccessibility="no"
-        tools:ignore="SpeakableTextPresentCheck"
-        tools:text="// Write your code here"
         app:layout_constraintTop_toBottomOf="@id/backend_toggle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <io.github.rosemoe.sora.widget.CodeEditor
+            android:id="@+id/code_editor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            tools:ignore="SpeakableTextPresentCheck"
+            tools:text="// Write your code here" />
+
+        <!-- Inline completion overlay (faint ghost text + Accept/Dismiss) -->
+        <LinearLayout
+            android:id="@+id/inline_ac_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="4dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/inline_ac_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#888888"
+                android:textSize="14sp"
+                android:fontFamily="monospace"
+                android:textStyle="italic"
+                android:maxLines="4"
+                android:ellipsize="end"
+                android:alpha="0.8" />
+        </LinearLayout>
+    </FrameLayout>
 
     <!-- Run FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
