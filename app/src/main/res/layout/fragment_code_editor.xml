@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Backend toggle -->
+    <!-- top chips you already had -->
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/backend_toggle"
         android:layout_width="wrap_content"
@@ -16,87 +16,135 @@
         app:selectionRequired="true"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="4dp">
+        android:padding="8dp">
 
         <com.google.android.material.chip.Chip
             android:id="@+id/toggle_auto"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="Auto"
-            app:checkedIconVisible="false" />
+            android:text="Auto" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/toggle_judge0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Fast"
-            app:checkedIconVisible="false" />
+            android:text="Fast" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/toggle_live"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Live"
-            app:checkedIconVisible="false" />
+            android:text="Live" />
     </com.google.android.material.chip.ChipGroup>
 
-    <!-- Editor container so we can overlay inline suggestions -->
-    <FrameLayout
-        android:id="@+id/editor_container"
+    <!-- main row: left black bar + editor area -->
+    <LinearLayout
+        android:id="@+id/main_row"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/backend_toggle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <io.github.rosemoe.sora.widget.CodeEditor
-            android:id="@+id/code_editor"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:importantForAccessibility="no"
-            tools:ignore="SpeakableTextPresentCheck"
-            tools:text="// Write your code here" />
-
-        <!-- Inline completion overlay (faint ghost text + Accept/Dismiss) -->
+        <!-- ALWAYS-VISIBLE BLACK BAR -->
         <LinearLayout
-            android:id="@+id/inline_ac_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/left_bar"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:background="#000000"
             android:orientation="vertical"
-            android:padding="4dp"
-            android:visibility="gone">
+            android:gravity="top|center_horizontal"
+            android:paddingTop="12dp">
 
-            <TextView
-                android:id="@+id/inline_ac_text"
+            <!-- folder indicator -->
+            <ImageView
+                android:id="@+id/icon_files"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@android:drawable/ic_menu_manage"
+                app:tint="@android:color/white"
+                android:contentDescription="Files" />
+        </LinearLayout>
+
+        <!-- EDITOR AREA (Frame so we can overlay the popup panel) -->
+        <FrameLayout
+            android:id="@+id/editor_wrapper"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <!-- actual editor -->
+            <io.github.rosemoe.sora.widget.CodeEditor
+                android:id="@+id/code_editor"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                tools:ignore="SpeakableTextPresentCheck"
+                tools:text="// Write your code here" />
+
+            <!-- Inline completion overlay (faint ghost text + Accept/Dismiss) -->
+            <LinearLayout
+                android:id="@+id/inline_ac_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#888888"
-                android:textSize="14sp"
-                android:fontFamily="monospace"
-                android:textStyle="italic"
-                android:maxLines="4"
-                android:ellipsize="end"
-                android:alpha="0.8" />
-        </LinearLayout>
-    </FrameLayout>
+                android:orientation="vertical"
+                android:padding="4dp"
+                android:visibility="gone">
 
-    <!-- Run FAB -->
+                <TextView
+                    android:id="@+id/inline_ac_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#888888"
+                    android:textSize="14sp"
+                    android:fontFamily="monospace"
+                    android:textStyle="italic"
+                    android:maxLines="4"
+                    android:ellipsize="end"
+                    android:alpha="0.8" />
+            </LinearLayout>
+
+            <!-- POPUP FILE PANEL (hidden, slides over editor) -->
+            <LinearLayout
+                android:id="@+id/files_panel"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="#121212"
+                android:elevation="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Files"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:padding="12dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/files_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:scrollbars="vertical" />
+            </LinearLayout>
+
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Run FAB as before -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_run"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:contentDescription="Run"
         app:srcCompat="@android:drawable/ic_media_play"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Small progress -->
     <ProgressBar
         android:id="@+id/progress"
         style="?android:attr/progressBarStyleSmall"
@@ -104,7 +152,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

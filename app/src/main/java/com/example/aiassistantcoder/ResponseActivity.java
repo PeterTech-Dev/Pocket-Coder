@@ -1,6 +1,7 @@
 package com.example.aiassistantcoder;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -17,6 +18,8 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class ResponseActivity extends AppCompatActivity implements CodeEditorFragment.PagerNav {
 
+    private static final String TAG = "ResponseActivity";
+
     private String aiCode;
     private String aiLanguage;
     private String aiRuntime;
@@ -25,7 +28,6 @@ public class ResponseActivity extends AppCompatActivity implements CodeEditorFra
 
     private ViewPager2 viewPager;
 
-    // Keep refs so we can pass data / interact if needed
     private ChatFragment chatFragment;
     private CodeEditorFragment codeEditorFragment;
     private ConsoleFragment consoleFragment;
@@ -35,13 +37,28 @@ public class ResponseActivity extends AppCompatActivity implements CodeEditorFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_response);
 
+        // debugger
+        Log.d(TAG, "onCreate: ResponseActivity launched");
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         ImageButton closeButton = findViewById(R.id.close_button);
-        closeButton.setOnClickListener(v -> finish());
+        closeButton.setOnClickListener(v -> {
+            // debugger
+            Log.d(TAG, "Close button clicked");
+            finish();
+        });
 
-        // Intent extras
+        // debugger
+        Log.d(TAG, "Intent extras dump -> " +
+                "ai_code.len=" + (getIntent().getStringExtra("ai_code") != null ? getIntent().getStringExtra("ai_code").length() : 0) +
+                ", ai_language=" + getIntent().getStringExtra("ai_language") +
+                ", ai_runtime=" + getIntent().getStringExtra("ai_runtime") +
+                ", ai_notes=" + getIntent().getStringExtra("ai_notes") +
+                ", projectTitle=" + getIntent().getStringExtra("projectTitle") +
+                ", query=" + getIntent().getStringExtra("query"));
+
         aiCode     = getIntent().getStringExtra("ai_code");
         aiLanguage = getIntent().getStringExtra("ai_language");
         aiRuntime  = getIntent().getStringExtra("ai_runtime");
@@ -51,15 +68,20 @@ public class ResponseActivity extends AppCompatActivity implements CodeEditorFra
 
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             currentProject = ProjectRepository.getInstance().getProjectByTitle(projectTitle);
+            // debugger
+            Log.d(TAG, "Loaded project from repo (logged-in): title=" + projectTitle + ", project=" + currentProject);
         } else {
             String initialQuery = getIntent().getStringExtra("query");
             String initialResponse = getIntent().getStringExtra("response");
             currentProject = new Project(initialQuery);
             currentProject.addMessage(new Message(initialQuery, "user"));
             currentProject.addMessage(new Message(initialResponse, "model"));
+            // debugger
+            Log.d(TAG, "Created local project (not logged-in): query=" + initialQuery);
         }
 
         if (currentProject == null) {
+            Log.e(TAG, "currentProject is null, finishing");
             Toast.makeText(this, "Project not found", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -68,9 +90,9 @@ public class ResponseActivity extends AppCompatActivity implements CodeEditorFra
         viewPager = findViewById(R.id.view_pager);
         TabLayout tabLayout = findViewById(R.id.tab_layout);
 
-        // instantiate fragments once so we can set fields on them
         chatFragment = new ChatFragment();
-        chatFragment.setProject(currentProject); // <-- IMPORTANT so ChatFragment can send/receive
+        chatFragment.setProject(currentProject); // debugger
+        Log.d(TAG, "ChatFragment setProject done");
 
         codeEditorFragment = new CodeEditorFragment();
         codeEditorFragment.setProject(currentProject);
@@ -84,10 +106,11 @@ public class ResponseActivity extends AppCompatActivity implements CodeEditorFra
         if (j0 != null)   editorArgs.putString("judge0_base_url", j0);
         if (live != null) editorArgs.putString("live_base_url", live);
         codeEditorFragment.setArguments(editorArgs);
+        // debugger
+        Log.d(TAG, "CodeEditorFragment args set, codeLen=" + (aiCode != null ? aiCode.length() : 0));
 
         consoleFragment = new ConsoleFragment();
 
-        // 3 tabs: Chat, Code Editor, Console
         viewPager.setAdapter(new FragmentStateAdapter(this) {
             @NonNull @Override
             public Fragment createFragment(int position) {
@@ -106,11 +129,15 @@ public class ResponseActivity extends AppCompatActivity implements CodeEditorFra
             else if (position == 1) tab.setText("Code Editor");
             else tab.setText("Console");
         }).attach();
+
+        // debugger
+        Log.d(TAG, "ResponseActivity UI set up, initial page=Chat");
     }
 
-    // Allow fragments to switch to the Console tab
     @Override
     public void goToConsoleTab() {
+        // debugger
+        Log.d(TAG, "goToConsoleTab called from fragment");
         if (viewPager != null) viewPager.setCurrentItem(2, true);
     }
 }

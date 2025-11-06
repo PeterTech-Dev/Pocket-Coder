@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log; // <-- debugger
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +26,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 
 import java.util.List;
 
@@ -32,6 +35,8 @@ import io.noties.markwon.Markwon;
 import io.noties.markwon.image.ImagesPlugin;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
+
+    private static final String TAG = "ChatAdapter"; // <-- debugger
 
     private final List<Message> messages;
     private final Markwon markwon;
@@ -117,6 +122,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             final boolean isUser = "user".equals(message.getRole());
             final String text = message.getText() == null ? "" : message.getText();
 
+            // debugger
+            Log.d(TAG, "bind(): role=" + message.getRole()
+                    + " textLen=" + text.length()
+                    + " hasImage=" + (message.getImageUri() != null));
+
             // Align/color bubble
             messageRoot.setGravity(isUser ? Gravity.END : Gravity.START);
             bubbleLayout.setBackgroundResource(isUser
@@ -136,9 +146,17 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             // Try extract JSON from model replies only
             String json = (!isUser) ? extractFirstJson(text) : null;
 
+            // debugger
+            if (!isUser) {
+                Log.d(TAG, "bind(): extracted JSON=" + (json == null ? "null" : ("len=" + json.length())));
+            }
+
             if (!isUser && !TextUtils.isEmpty(json)) {
                 // First try to parse into a structured payload (Language/Runtime/Code/Notes)
                 AiPayload payload = tryParsePayload(json);
+
+                // debugger
+                Log.d(TAG, "bind(): payload parsed=" + (payload != null));
 
                 if (payload != null) {
                     showParsedCard(payload);
@@ -154,10 +172,14 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 messageText.setVisibility(View.VISIBLE);
 
                 if (isUser) {
+                    // debugger
+                    Log.d(TAG, "bind(): user message, plain text shown");
                     messageText.setText(text);
                     copyButton.setVisibility(View.GONE);
                     copyCodeButton.setVisibility(View.GONE);
                 } else {
+                    // debugger
+                    Log.d(TAG, "bind(): model message, markdown path");
                     markwon.setMarkdown(messageText, text);
 
                     copyButton.setVisibility(View.VISIBLE);
@@ -180,6 +202,12 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         // UI branches
         // ----------------------------------------
         private void showParsedCard(AiPayload p) {
+            // debugger
+            Log.d(TAG, "showParsedCard(): lang=" + p.language
+                    + " runtime=" + p.runtime
+                    + " codeLen=" + (p.code == null ? 0 : p.code.length())
+                    + " filePath=" + p.filePath);
+
             parsedContainer.setVisibility(View.VISIBLE);
             jsonContainer.setVisibility(View.GONE);
             messageText.setVisibility(View.GONE);
@@ -204,6 +232,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             // Collapsible code
             String code = safe(p.code);
             parsedCode.setText(code);
+
+            if (p.filePath != null && !p.filePath.isEmpty()) {
+                String current = parsedNotes.getText().toString();
+                parsedNotes.setText(current + "\n\nFile: " + p.filePath);
+            }
 
             boolean tooLong = countLines(code) > 16;
             parsedCode.setMaxLines(tooLong ? 16 : Integer.MAX_VALUE);
@@ -232,11 +265,18 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         }
 
         private void showRawJsonCard(String json) {
+            // debugger
+            Log.d(TAG, "showRawJsonCard(): rawJsonLen=" + (json == null ? 0 : json.length()));
+
             parsedContainer.setVisibility(View.GONE);
             jsonContainer.setVisibility(View.VISIBLE);
             messageText.setVisibility(View.GONE);
 
             String pretty = prettyJson(json);
+
+            // debugger
+            Log.d(TAG, "showRawJsonCard(): prettyJsonLen=" + pretty.length());
+
             jsonText.setText(pretty);
             jsonText.setMaxLines(14);
 
@@ -252,9 +292,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             });
         }
 
-        // ----------------------------------------
-        // Helpers
-        // ----------------------------------------
         private static void copyToClipboard(Context ctx, String s, String toast) {
             ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("copied", s));
@@ -262,30 +299,41 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         }
 
         /** Find first fenced ```json ... ``` or a balanced {…}/[…] block. */
+        /** Find first real JSON: either ```json ... ``` or text that actually starts with { or [. */
         private String extractFirstJson(String s) {
             if (s == null) return null;
 
+            Log.d(TAG, "extractFirstJson(): inputLen=" + s.length());
+
+            // 1) explicit fenced JSON wins
             int fenceStart = s.indexOf("```json");
             if (fenceStart == -1) fenceStart = s.indexOf("```JSON");
             if (fenceStart != -1) {
                 int codeStart = s.indexOf('\n', fenceStart);
                 int fenceEnd = s.indexOf("```", codeStart + 1);
                 if (codeStart != -1 && fenceEnd != -1) {
-                    return s.substring(codeStart + 1, fenceEnd).trim();
+                    String fenced = s.substring(codeStart + 1, fenceEnd).trim();
+                    Log.d(TAG, "extractFirstJson(): found fenced JSON, len=" + fenced.length());
+                    return fenced;
                 }
             }
 
-            int brace = s.indexOf('{');
-            int bracket = s.indexOf('[');
-            int start;
-            if (brace == -1) start = bracket;
-            else if (bracket == -1) start = brace;
-            else start = Math.min(brace, bracket);
-            if (start == -1) return null;
+            // 2) if the WHOLE message actually starts with { or [, treat as json
+            String trimmed = s.trim();
+            if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                int end = findMatchingJsonEnd(trimmed, 0);
+                if (end != -1) {
+                    String result = trimmed.substring(0, end + 1).trim();
+                    Log.d(TAG, "extractFirstJson(): found top-level JSON, len=" + result.length());
+                    return result;
+                }
+            }
 
-            int end = findMatchingJsonEnd(s, start);
-            return end == -1 ? null : s.substring(start, end + 1).trim();
+            // 3) otherwise, do NOT try to pull JSON from the middle of markdown/code
+            Log.d(TAG, "extractFirstJson(): no real JSON detected, returning null");
+            return null;
         }
+
 
         private int findMatchingJsonEnd(String text, int start) {
             int depth = 0; boolean inStr = false; char quote = 0; boolean esc = false;
@@ -316,6 +364,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 Gson g = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
                 return g.toJson(el);
             } catch (Exception e) {
+                // debugger
+                Log.w(TAG, "prettyJson(): failed to parse, returning raw", e);
                 return raw;
             }
         }
@@ -341,21 +391,62 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             try {
                 String t = json.replace('“', '"').replace('”', '"').replace('’', '\'');
                 t = t.replaceAll(",(\\s*[}\\]])", "$1");
-                return new Gson().fromJson(t, AiPayload.class);
+
+                JsonElement el = JsonParser.parseString(t);
+                if (!el.isJsonObject()) return null;
+
+                JsonObject obj = el.getAsJsonObject();
+                AiPayload p = new AiPayload();
+
+                p.language = obj.has("language") ? obj.get("language").getAsString() : "";
+                p.runtime  = obj.has("runtime")  ? obj.get("runtime").getAsString()  : "";
+                p.notes    = obj.has("notes")    ? obj.get("notes").getAsString()    : "";
+
+                if (obj.has("files") && obj.get("files").isJsonArray()
+                        && obj.get("files").getAsJsonArray().size() > 0) {
+
+                    JsonObject f0 = obj.get("files").getAsJsonArray()
+                            .get(0).getAsJsonObject();
+
+                    String path     = f0.has("path")     ? f0.get("path").getAsString()     : "";
+                    String filename = f0.has("filename") ? f0.get("filename").getAsString() : "";
+                    String content  = f0.has("content")  ? f0.get("content").getAsString()  : "";
+
+                    p.code = content != null ? content : "";
+
+                    if (path != null && !path.isEmpty() && !path.equals(".")) {
+                        p.filePath = path + "/" + filename;
+                    } else {
+                        p.filePath = filename;
+                    }
+                } else {
+                    p.code = obj.has("code") ? obj.get("code").getAsString() : "";
+                }
+
+                if ( (p.code == null || p.code.isEmpty())
+                        && (p.language == null || p.language.isEmpty())
+                        && (p.runtime == null || p.runtime.isEmpty()) ) {
+                    return null;
+                }
+
+                return p;
             } catch (Exception ignored) {
+                // debugger
+                Log.w(TAG, "tryParsePayload(): failed to parse JSON payload");
                 return null;
             }
         }
+
     }
 
-    // ----------------------------------------
     // DTO for parsed AI JSON
-    // ----------------------------------------
     static class AiPayload {
         String language;
         String runtime;
         String code;
         String notes;
+        String filePath;
         @SerializedName("runnerHint") String runnerHint;
     }
+
 }

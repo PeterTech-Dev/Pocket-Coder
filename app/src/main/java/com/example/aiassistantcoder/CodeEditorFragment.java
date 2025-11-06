@@ -1089,7 +1089,7 @@ public class CodeEditorFragment extends Fragment {
             GrammarRegistry.getInstance().loadGrammars("tm/languages.json");
 
             ThemeRegistry themeRegistry = ThemeRegistry.getInstance();
-            String themeName = "dark"; // must match file name without .json
+            String themeName = "dark"; // Need Settings For This
             String themePath = "themes/" + themeName + ".json";
 
             ThemeModel model = new ThemeModel(

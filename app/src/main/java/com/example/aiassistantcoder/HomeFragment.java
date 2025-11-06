@@ -28,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -42,6 +43,7 @@ public class HomeFragment extends Fragment {
     private static final String MODEL = "gemini-flash-latest";
     private static final String ENDPOINT =
             "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent";
+
     private static final String TAG = "HomeFragment";
 
     private EditText searchBar;
@@ -52,7 +54,12 @@ public class HomeFragment extends Fragment {
     private RelativeLayout imagePreviewContainer;
     private Bitmap selectedImageBitmap;
 
-    private final OkHttpClient http = new OkHttpClient();
+    private final OkHttpClient http = new OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .callTimeout(0, TimeUnit.SECONDS)
+            .build();
     private final Gson gson = new Gson();
     private final Executor bg = Executors.newSingleThreadExecutor();
 
@@ -78,6 +85,9 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        // debugger
+        Log.d(TAG, "onCreateView: HomeFragment created");
+
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         searchBar = view.findViewById(R.id.search_bar);
@@ -89,22 +99,33 @@ public class HomeFragment extends Fragment {
         ImageButton removeImageButton = view.findViewById(R.id.remove_image_button_home);
 
         imageInput.setOnClickListener(v -> {
+            // debugger
+            Log.d(TAG, "Image input clicked");
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             pickImage.launch(intent);
         });
 
         removeImageButton.setOnClickListener(v -> {
+            // debugger
+            Log.d(TAG, "Remove image clicked");
             selectedImageBitmap = null;
             imagePreviewContainer.setVisibility(View.GONE);
         });
 
-        submitButton.setOnClickListener(v -> submitToGemini());
+        submitButton.setOnClickListener(v -> {
+            // debugger
+            Log.d(TAG, "Submit button clicked");
+            submitToGemini();
+        });
 
         return view;
     }
 
     private void submitToGemini() {
         String userText = searchBar.getText().toString().trim();
+        // debugger
+        Log.d(TAG, "submitToGemini: user text = " + userText + ", hasImage=" + (selectedImageBitmap != null));
+
         if (userText.isEmpty() && selectedImageBitmap == null) {
             Toast.makeText(getContext(), "Please enter some text or select an image", Toast.LENGTH_SHORT).show();
             return;
@@ -112,14 +133,35 @@ public class HomeFragment extends Fragment {
 
         loadingIndicator.setVisibility(View.VISIBLE);
 
-        // ---- Build system instruction ----
         String systemPrompt =
-                "You are a coding-only assistant.\n" +
-                        "- If the input is not about programming/software, reply with exactly:\n" +
+                "You are an assistant that outputs ONE JSON object and nothing else.\n" +
+                        "\n" +
+                        "If the user request is NOT about programming or software, reply with exactly:\n" +
                         "\"I'm not suitable to answer this. If you have any programming question I may help you.\"\n" +
-                        "- Otherwise: classify the code language & runtime, and produce runnable code.\n" +
-                        "- Keep it concise, code-first. If you have comments about the code, put them as code comments.\n" +
-                        "- Output must be valid JSON matching the response_schema.\n";
+                        "Do not output JSON in that case.\n" +
+                        "\n" +
+                        "Otherwise, output exactly this structure:\n" +
+                        "{\n" +
+                        "  \"language\": \"python|node|javascript|typescript|java|c|cpp|go\",\n" +
+                        "  \"runtime\": \"string (e.g. python3.11, node20)\",\n" +
+                        "  \"entrypoint\": \"string (e.g. main.py or src/index.js)\",\n" +
+                        "  \"files\": [\n" +
+                        "    {\n" +
+                        "      \"path\": \"string\",\n" +
+                        "      \"filename\": \"string\",\n" +
+                        "      \"summary\": \"do not use more than max 80 words describing ONLY this file\",\n" +
+                        "      \"content\": \"full source code of this file\"\n" +
+                        "    }\n" +
+                        "  ],\n" +
+                        "  \"notes\": \"short instructions for running the project\"\n" +
+                        "}\n" +
+                        "\n" +
+                        "Rules:\n" +
+                        "- Every item in \"files\" MUST contain ALL FOUR fields: path, filename, summary, content.\n" +
+                        "- Do NOT split one file across multiple objects.\n" +
+                        "- Use forward slashes in paths.\n" +
+                        "- Do NOT add extra top-level fields.\n" +
+                        "- Do NOT wrap the JSON in markdown or code fences.\n";
 
         JsonObject systemInstruction = new JsonObject();
         JsonArray sysParts = new JsonArray();
@@ -152,10 +194,11 @@ public class HomeFragment extends Fragment {
         JsonArray contents = new JsonArray();
         contents.add(userContent);
 
-        // ---- Response schema (language/runtime/code/notes) ----
+        // ---- Response schema ----
         JsonObject generationConfig = new JsonObject();
         generationConfig.addProperty("responseMimeType", "application/json");
         generationConfig.add("responseSchema", buildResponseSchema());
+        generationConfig.addProperty("maxOutputTokens", 2048);
 
         // ---- Full request ----
         JsonObject payload = new JsonObject();
@@ -164,6 +207,10 @@ public class HomeFragment extends Fragment {
         payload.add("generationConfig", generationConfig);
 
         String url = ENDPOINT + "?key=" + BuildConfig.GEMINI_API_KEY;
+
+        // debugger
+        Log.d(TAG, "submitToGemini: final JSON payload -> " + gson.toJson(payload));
+
         RequestBody body = RequestBody.create(
                 gson.toJson(payload),
                 MediaType.parse("application/json; charset=utf-8")
@@ -172,55 +219,144 @@ public class HomeFragment extends Fragment {
 
         bg.execute(() -> {
             try (Response resp = http.newCall(request).execute()) {
+
+                // debugger
+                Log.d(TAG, "submitToGemini: HTTP code=" + resp.code());
+
                 if (!resp.isSuccessful()) {
                     String errBody = resp.body() != null ? resp.body().string() : "";
                     Log.e(TAG, "Gemini error HTTP " + resp.code() + ": " + errBody);
-                    postError("HTTP " + resp.code() + ": " + errBody);
+
+                    if (resp.code() == 503) {
+                        postError("Gemini is overloaded right now. Try the same request again.");
+                    } else {
+                        postError("HTTP " + resp.code() + ": " + errBody);
+                    }
                     return;
                 }
 
                 String json = resp.body() != null ? resp.body().string() : "";
+
+                // debugger
+                Log.d(TAG, "submitToGemini: RAW response from Gemini -> " + json);
+
                 String modelText = extractTextFromCandidates(json);
 
-                // Try to parse the model text as our JSON shape
-                String aiCode = "";
+                // debugger
+                Log.d(TAG, "submitToGemini: modelText (first part text) -> " + modelText);
+
+                String aiCode    = "";
                 String aiLanguage = "";
-                String aiRuntime = "";
-                String aiNotes = "";
+                String aiRuntime  = "";
+                String aiNotes    = "";
+                String display    = modelText;   // fallback
 
                 try {
                     JsonObject obj = gson.fromJson(modelText, JsonObject.class);
-                    if (obj != null && obj.has("code")) aiCode = safeString(obj, "code");
-                    if (obj != null && obj.has("language")) aiLanguage = safeString(obj, "language");
-                    if (obj != null && obj.has("runtime")) aiRuntime = safeString(obj, "runtime");
-                    if (obj != null && obj.has("notes")) aiNotes = safeString(obj, "notes");
+                    if (obj != null) {
+                        aiLanguage = safeString(obj, "language");
+                        aiRuntime  = safeString(obj, "runtime");
+                        aiNotes    = safeString(obj, "notes");
+
+                        StringBuilder sb = new StringBuilder();
+
+                        if (!aiLanguage.isEmpty()) {
+                            sb.append("**Language:** ").append(aiLanguage).append("\n");
+                        }
+                        if (!aiRuntime.isEmpty()) {
+                            sb.append("**Runtime:** ").append(aiRuntime).append("\n");
+                        }
+                        String entrypoint = safeString(obj, "entrypoint");
+                        if (!entrypoint.isEmpty()) {
+                            sb.append("**Entrypoint:** ").append(entrypoint).append("\n");
+                        }
+                        if (!aiNotes.isEmpty()) {
+                            sb.append("\n").append(aiNotes).append("\n\n");
+                        }
+
+                        if (obj.has("files") && obj.get("files").isJsonArray()) {
+                            JsonArray filesArr = obj.getAsJsonArray("files");
+
+                            for (int i = 0; i < filesArr.size(); i++) {
+                                if (!filesArr.get(i).isJsonObject()) continue;
+                                JsonObject fObj = filesArr.get(i).getAsJsonObject();
+
+                                String path    = safeString(fObj, "path");
+                                String fname   = safeString(fObj, "filename");
+                                String summary = safeString(fObj, "summary");
+                                String content = safeString(fObj, "content");
+
+                                if (i == 0) {
+                                    aiCode = content;
+                                }
+
+                                String fullPath;
+                                if (path != null && !path.isEmpty() && !path.equals(".")) {
+                                    fullPath = path + "/" + fname;
+                                } else {
+                                    fullPath = fname;
+                                }
+
+                                sb.append("**File:** ").append(fullPath).append("\n");
+                                if (!summary.isEmpty()) {
+                                    sb.append("*").append(summary).append("*\n\n");
+                                }
+
+                                if (!content.isEmpty()) {
+                                    String fenceLang = aiLanguage != null ? aiLanguage.toLowerCase() : "";
+                                    sb.append("```").append(fenceLang).append("\n");
+                                    sb.append(content).append("\n");
+                                    sb.append("```").append("\n\n");
+                                }
+                            }
+                        }
+
+                        display = sb.toString().trim();
+
+                        // debugger
+                        Log.d(TAG, "submitToGemini: display (pretty for chat) -> " + display);
+                        Log.d(TAG, "submitToGemini: aiCode length -> " + (aiCode != null ? aiCode.length() : 0));
+                    }
                 } catch (JsonSyntaxException ex) {
                     Log.w(TAG, "Model returned non-JSON; passing raw text");
-                    aiCode = modelText; // fall back: just dump text into editor
+                    aiCode = modelText;
+                    display = modelText;
+
+                    // debugger
+                    Log.d(TAG, "submitToGemini: JSON parse failed, using raw modelText");
                 }
 
                 if (getActivity() == null) return;
                 String query = searchBar.getText().toString().trim();
-                String finalAiCode = aiCode;
+                String finalAiCode     = aiCode;
                 String finalAiLanguage = aiLanguage;
-                String finalAiRuntime = aiRuntime;
-                String finalAiNotes = aiNotes;
+                String finalAiRuntime  = aiRuntime;
+                String finalAiNotes    = aiNotes;
+                String finalDisplay    = display;
+
                 getActivity().runOnUiThread(() -> {
                     loadingIndicator.setVisibility(View.GONE);
+
+                    // debugger
+                    Log.d(TAG, "submitToGemini: launching ResponseActivity with query=" + query);
 
                     Intent intent = new Intent(getActivity(), ResponseActivity.class);
                     if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                         Project newProject = new Project(query);
                         newProject.addMessage(new Message(query, "user"));
-                        newProject.addMessage(new Message(modelText, "model"));
+                        newProject.addMessage(new Message(finalDisplay, "model"));
                         ProjectRepository.getInstance().saveProjectToFirestore(newProject,
                                 new ProjectRepository.ProjectSaveCallback() {
                                     @Override public void onSaved(String projectId) {
+                                        // debugger
+                                        Log.d(TAG, "submitToGemini: project saved, id=" + projectId);
                                         intent.putExtra("projectTitle", newProject.getTitle());
                                         pushAiExtras(intent, finalAiCode, finalAiLanguage, finalAiRuntime, finalAiNotes);
+                                        intent.putExtra("response", finalDisplay);
                                         startActivity(intent);
                                     }
                                     @Override public void onError(Exception e) {
+                                        Log.e(TAG, "submitToGemini: project save error", e);
                                         Toast.makeText(getContext(),
                                                 "Error saving project: " + e.getMessage(),
                                                 Toast.LENGTH_SHORT).show();
@@ -228,7 +364,7 @@ public class HomeFragment extends Fragment {
                                 });
                     } else {
                         intent.putExtra("query", query);
-                        intent.putExtra("response", modelText);
+                        intent.putExtra("response", finalDisplay);
                         pushAiExtras(intent, finalAiCode, finalAiLanguage, finalAiRuntime, finalAiNotes);
                         startActivity(intent);
                     }
@@ -242,9 +378,12 @@ public class HomeFragment extends Fragment {
                 postError(e.getMessage());
             }
         });
+
     }
 
     private void pushAiExtras(Intent intent, String code, String language, String runtime, String notes) {
+        // debugger
+        Log.d(TAG, "pushAiExtras: codeLen=" + (code != null ? code.length() : 0) + " lang=" + language + " rt=" + runtime);
         intent.putExtra("ai_code", code);
         intent.putExtra("ai_language", language);
         intent.putExtra("ai_runtime", runtime);
@@ -262,27 +401,78 @@ public class HomeFragment extends Fragment {
     private JsonObject buildResponseSchema() {
         JsonObject properties = new JsonObject();
 
-        JsonObject language = new JsonObject(); language.addProperty("type", "string");
-        JsonObject runtime  = new JsonObject(); runtime.addProperty("type", "string");
-        JsonObject runnerHint = new JsonObject(); runnerHint.addProperty("type", "string");
-        JsonObject code     = new JsonObject(); code.addProperty("type", "string");
-        JsonObject notes    = new JsonObject(); notes.addProperty("type", "string");
+        JsonObject language = new JsonObject();
+        language.addProperty("type", "string");
+        language.addProperty("maxLength", 60);
+
+        JsonObject runtime = new JsonObject();
+        runtime.addProperty("type", "string");
+        runtime.addProperty("maxLength", 80);
+
+        JsonObject entrypoint = new JsonObject();
+        entrypoint.addProperty("type", "string");
+        entrypoint.addProperty("maxLength", 120);
+
+        JsonObject notes = new JsonObject();
+        notes.addProperty("type", "string");
+        notes.addProperty("maxLength", 280);
+
+        JsonObject fileProps = new JsonObject();
+
+        JsonObject path = new JsonObject();
+        path.addProperty("type", "string");
+        path.addProperty("maxLength", 200);
+
+        JsonObject filename = new JsonObject();
+        filename.addProperty("type", "string");
+        filename.addProperty("maxLength", 200);
+
+        JsonObject summary = new JsonObject();
+        summary.addProperty("type", "string");
+        summary.addProperty("maxLength", 400);
+
+        JsonObject content = new JsonObject();
+        content.addProperty("type", "string");
+
+        fileProps.add("path", path);
+        fileProps.add("filename", filename);
+        fileProps.add("summary", summary);
+        fileProps.add("content", content);
+
+        JsonArray fileRequired = new JsonArray();
+        fileRequired.add("path");
+        fileRequired.add("filename");
+        fileRequired.add("summary");
+        fileRequired.add("content");
+
+        JsonObject fileObj = new JsonObject();
+        fileObj.addProperty("type", "object");
+        fileObj.add("properties", fileProps);
+        fileObj.add("required", fileRequired);
+
+        JsonObject files = new JsonObject();
+        files.addProperty("type", "array");
+        files.add("items", fileObj);
+        files.addProperty("minItems", 1);
 
         properties.add("language", language);
         properties.add("runtime", runtime);
-        properties.add("runnerHint", runnerHint);
-        properties.add("code", code);
+        properties.add("entrypoint", entrypoint);
+        properties.add("files", files);
         properties.add("notes", notes);
 
         JsonArray required = new JsonArray();
         required.add("language");
         required.add("runtime");
-        required.add("code");
+        required.add("entrypoint");
+        required.add("files");
+        required.add("notes");
 
         JsonObject schema = new JsonObject();
         schema.addProperty("type", "object");
         schema.add("properties", properties);
         schema.add("required", required);
+
         return schema;
     }
 

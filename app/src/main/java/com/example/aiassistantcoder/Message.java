@@ -5,10 +5,14 @@ import java.io.Serializable;
 public class Message implements Serializable {
     private String text;
     private String role;
-    private String imageUri; // Keep this for local display
+    private String imageUri;
+
+    // NEW: for AI responses
+    private String code = "";
+    private String filePath = "";
 
     public Message() {
-        // No-argument constructor required for Firestore
+        // needed for Firestore
     }
 
     public Message(String text, String role) {
@@ -16,13 +20,19 @@ public class Message implements Serializable {
         this.role = role;
     }
 
-    // Getters
+    // ---- getters ----
     public String getText() { return text; }
     public String getRole() { return role; }
     public String getImageUri() { return imageUri; }
 
-    // Setters
+    public String getCode() { return code; }
+    public String getFilePath() { return filePath; }
+
+    // ---- setters ----
     public void setText(String text) { this.text = text; }
     public void setRole(String role) { this.role = role; }
     public void setImageUri(String imageUri) { this.imageUri = imageUri; }
+
+    public void setCode(String code) { this.code = code; }
+    public void setFilePath(String filePath) { this.filePath = filePath; }
 }
