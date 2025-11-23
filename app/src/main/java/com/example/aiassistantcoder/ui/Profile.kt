@@ -59,7 +59,7 @@ fun bindRegisterContent(
     onBackToSignIn: Function0<Unit>
 ) {
     composeView.setContent {
-        val bgPrimary = colorResource(R.color.bg_primary)
+        val bgPrimary = colorResource(R.color.colorBackground)
 
         MaterialTheme(colorScheme = darkColorScheme()) {
             Surface(
@@ -139,12 +139,12 @@ fun SignInContent(
     onForgotPassword: (String) -> Unit,
     onRegisterClick: () -> Unit
 ) {
-    val bgSecondary = colorResource(R.color.bg_secondary)
-    val bgThird     = colorResource(R.color.bg_third)
-    val white       = colorResource(R.color.white)
-    val grey        = colorResource(R.color.grey)
-    val purple      = colorResource(R.color.purple)
-    val purpleBlue  = colorResource(R.color.purple_blue)
+    val bgSecondary = colorResource(R.color.colorSurface)
+    val bgThird     = colorResource(R.color.colorSurfaceVariant)
+    val white       = colorResource(R.color.colorOnBackground)
+    val grey        = colorResource(R.color.colorOutline)
+    val purple      = colorResource(R.color.colorSecondary)
+    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -299,10 +299,10 @@ fun PhoneSignInDialogContent(
     onVerifyCode: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val bgSecondary = colorResource(R.color.bg_secondary)
-    val bgThird     = colorResource(R.color.bg_third)
-    val white       = colorResource(R.color.white)
-    val purpleBlue  = colorResource(R.color.purple_blue)
+    val bgSecondary = colorResource(R.color.colorSurface)
+    val bgThird     = colorResource(R.color.colorSurfaceVariant)
+    val white       = colorResource(R.color.colorOnBackground)
+    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
 
     var phone by remember { mutableStateOf("") }
     var code  by remember { mutableStateOf("") }
@@ -421,11 +421,11 @@ fun RegisterContent(
     ) -> Unit,
     onBackToSignIn: () -> Unit
 ) {
-    val bgSecondary = colorResource(R.color.bg_secondary)
-    val bgThird     = colorResource(R.color.bg_third)
-    val white       = colorResource(R.color.white)
-    val purpleBlue  = colorResource(R.color.purple_blue)
-    val grey        = colorResource(R.color.grey)
+    val bgSecondary = colorResource(R.color.colorSurface)
+    val bgThird     = colorResource(R.color.colorSurfaceVariant)
+    val white       = colorResource(R.color.colorOnBackground)
+    val grey        = colorResource(R.color.colorOutline)
+    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
 
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -610,11 +610,11 @@ fun RegisterContent(
 fun ReauthPasswordContent(
     onSubmitPassword: (String) -> Unit
 ) {
-    val bgPrimary   = colorResource(R.color.bg_primary)
-    val bgSecondary = colorResource(R.color.bg_secondary)
-    val bgThird     = colorResource(R.color.bg_third)
-    val white       = colorResource(R.color.white)
-    val purpleBlue  = colorResource(R.color.purple_blue)
+    val bgPrimary   = colorResource(R.color.colorBackground)
+    val bgSecondary = colorResource(R.color.colorSurface)
+    val bgThird     = colorResource(R.color.colorSurfaceVariant)
+    val white       = colorResource(R.color.colorOnBackground)
+    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
 
     var password by remember { mutableStateOf("") }
 
@@ -708,11 +708,11 @@ fun ReauthPasswordContent(
 fun NewPasswordContent(
     onUpdatePassword: (String) -> Unit
 ) {
-    val bgPrimary   = colorResource(R.color.bg_primary)
-    val bgSecondary = colorResource(R.color.bg_secondary)
-    val bgThird     = colorResource(R.color.bg_third)
-    val white       = colorResource(R.color.white)
-    val purpleBlue  = colorResource(R.color.purple_blue)
+    val bgPrimary   = colorResource(R.color.colorBackground)
+    val bgSecondary = colorResource(R.color.colorSurface)
+    val bgThird     = colorResource(R.color.colorSurfaceVariant)
+    val white       = colorResource(R.color.colorOnBackground)
+    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
 
     val context = LocalContext.current
     val activity = context as? android.app.Activity
@@ -849,10 +849,10 @@ fun LoggedInContent(
     onResetPassword: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    val bgSecondary = colorResource(R.color.bg_secondary)
-    val bgThird     = colorResource(R.color.bg_third)
-    val white       = colorResource(R.color.white)
-    val purpleBlue  = colorResource(R.color.purple_blue)
+    val bgSecondary = colorResource(R.color.colorSurface)
+    val bgThird     = colorResource(R.color.colorSurfaceVariant)
+    val white       = colorResource(R.color.colorOnBackground)
+    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
 
     var newName by remember { mutableStateOf("") }
 

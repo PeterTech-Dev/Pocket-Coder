@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@android:color/white"
+    android:background="@color/colorSurface"
     android:padding="12dp">
 
     <!-- HEADER: will show "game/main.py · +12 · −3" -->
@@ -15,7 +15,7 @@
         android:text="Changes · +0 · −0"
         android:textStyle="bold"
         android:textSize="14sp"
-        android:textColor="#FF000000"
+        android:textColor="@color/colorOnSurface"
         android:paddingBottom="8dp" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:text="Cancel"
             android:textAllCaps="true"
-            android:textColor="#FF555555"
+            android:textColor="@color/colorError"
             android:padding="8dp" />
 
         <TextView
@@ -47,7 +47,7 @@
             android:text="Apply"
             android:textAllCaps="true"
             android:textStyle="bold"
-            android:textColor="#FF2196F3"
+            android:textColor="@color/colorPrimary"
             android:padding="8dp" />
     </LinearLayout>
 

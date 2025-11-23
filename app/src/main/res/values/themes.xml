@@ -1,65 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- res/values/themes.xml -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- res/values/themes.xml -->
+    <style name="Theme.AiAssistantCoder" parent="Theme.Material3.Dark.NoActionBar">
 
-    <style name="Theme.AiAssistantCoder" parent="Theme.Material3.Light.NoActionBar">
+        <item name="gradientStart">@color/colorSurfaceVariant</item>
+        <item name="gradientCenter">@color/colorSurface</item>
+        <item name="gradientEnd">@color/colorBackground</item>
 
-        <!-- Custom gradient tokens (for your own layouts) -->
-        <item name="gradientStart">@color/bg_secondary</item>
-        <item name="gradientCenter">@color/bg_primary</item>
-        <item name="gradientEnd">@color/bg_primary</item>
+        <!-- Map brand colors -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryContainer">@color/colorPrimaryLight</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
 
-        <!-- Core brand colors -->
-        <item name="colorPrimary">@color/blue</item>
-        <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorPrimaryContainer">@color/blue_light</item>
-        <item name="colorOnPrimaryContainer">@android:color/white</item>
-
-        <item name="colorSecondary">@color/purple</item>
-        <item name="colorOnSecondary">@android:color/white</item>
-        <item name="colorSecondaryContainer">@color/purple_light</item>
-        <item name="colorOnSecondaryContainer">@android:color/white</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondaryContainer">@color/colorSecondaryLight</item>
+        <item name="colorOnSecondary">@color/colorOnSurface</item>
 
         <!-- Background / surfaces -->
-        <!-- Use a flat color for the theme; gradient stays in layout background -->
-        <item name="android:windowBackground">@color/bg_primary</item>
-        <item name="colorOnBackground">@color/grey_dark</item>
+        <item name="android:windowBackground">@drawable/bg_gradient</item>
+        <item name="colorSurface">@color/colorSurfaceVariant</item>
+        <item name="colorOnSurface">@color/colorOnSurface</item>
+        <item name="colorError">@color/colorError</item>
+        <item name="colorOnError">@color/colorOnPrimary</item>
 
-        <item name="colorSurface">@color/bg_secondary</item>
-        <item name="colorOnSurface">@color/grey_dark</item>
-
-        <item name="colorSurfaceVariant">@color/bg_third</item>
-        <item name="colorOnSurfaceVariant">@color/grey</item>
-
-        <item name="colorOutline">@color/grey</item>
-
-        <!-- Error -->
-        <item name="colorError">@color/red</item>
-        <item name="colorOnError">@android:color/white</item>
-
-        <!-- Status & nav bars -->
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <!-- Light icons/text on dark? false; dark icons on light? true -->
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/colorBackground</item>
 
-        <!-- You can keep nav bar slightly darker than background -->
-        <item name="android:navigationBarColor">@color/bg_secondary</item>
+        <!-- Typography defaults (optional) -->
+        <item name="android:textColorPrimary">@color/colorOnPrimary</item>
+        <item name="android:textColorSecondary">@color/colorHint</item>
 
-        <!-- Typography defaults (system-level) -->
-        <item name="android:textColorPrimary">@color/grey_dark</item>
-        <item name="android:textColorSecondary">@color/grey</item>
-
-        <!-- Component default styles -->
+        <!-- Component default styles (point to STYLES, not colors) -->
         <item name="materialButtonStyle">@style/App.Button.Primary</item>
         <item name="materialButtonOutlinedStyle">@style/App.Button.Outlined</item>
         <item name="textInputStyle">@style/App.TextInput</item>
-        <item name="editTextStyle">@style/App.TextInput.EditText</item>
         <item name="bottomNavigationStyle">@style/App.BottomNav</item>
         <item name="materialCardViewStyle">@style/App.Card</item>
+
+        <!-- Extra roles -->
+        <item name="colorOnBackground">@color/colorOnBackground</item>
+        <item name="colorSurfaceVariant">@color/colorSurface</item>
+        <item name="colorOnSurfaceVariant">@color/colorHint</item>
+        <item name="colorOutline">@color/colorOutline</item>
+
+        <!-- Bars -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <!-- Inputs -->
+        <item name="editTextStyle">@style/App.TextInput.EditText</item>
 
         <!-- Overlays -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.AiAssistantCoder.Dialog</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.AiAssistantCoder.BottomSheet</item>
-
     </style>
-
 </resources>

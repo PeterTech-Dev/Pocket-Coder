@@ -14,7 +14,7 @@
         android:text="Settings"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/white"
+        android:textColor="@color/colorOnBackground"
         android:layout_marginBottom="24dp" />
 
     <!-- Compose draws all the settings UI -->

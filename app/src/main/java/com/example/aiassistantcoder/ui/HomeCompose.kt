@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
@@ -161,32 +162,37 @@ object HomeCompose {
 
     @Composable
     fun MaskedHeroImage(
-        cropFraction: Float = 0.8f, // how much from the top we ignore
+        fadeOffsetFromBottom: Dp = 40.dp // how much from the bottom we start fading
     ) {
         Image(
             painter = painterResource(id = R.drawable.ai_robot),
             contentDescription = null,
-            contentScale = ContentScale.Fit,
+            contentScale = ContentScale.Fit,   // 👈 show whole image
             modifier = Modifier
                 .fillMaxWidth()
+                .height(200.dp)               // tweak this as you like
                 .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                 .drawWithContent {
                     // 1) Draw original image
                     drawContent()
+
+                    // 2) Compute where fade should start, measured from the *bottom*,
+                    //    so it behaves nicely no matter what height you choose
+                    val fadeHeightPx = fadeOffsetFromBottom.toPx()
+                    val maskTop = size.height - fadeHeightPx
 
                     val maskBrush = Brush.radialGradient(
                         colorStops = arrayOf(
                             0.0f to Color.Transparent,
                             0.6f to Color.Transparent,
                             1.0f to Color.Black
-                        ),
+                        )
                     )
 
-                    val maskTop = size.height * cropFraction
-
+                    // 3) Apply the mask only in the bottom strip
                     clipRect(
                         left = 0f,
-                        top = maskTop,
+                        top = maskTop.coerceAtLeast(0f),
                         right = size.width,
                         bottom = size.height
                     ) {

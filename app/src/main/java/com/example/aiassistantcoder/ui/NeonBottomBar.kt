@@ -50,12 +50,12 @@ fun NeonBottomBar(
     )
 
     NavigationBar(
-        containerColor = colorResource(id = R.color.bg_third),
+        containerColor = colorResource(id = R.color.colorSurfaceVariant),
         tonalElevation = 0.dp
     ) {
         items.forEachIndexed { index, (label, iconRes) ->
             val selected = index == selectedIndex
-            val glowColor = colorResource(id = R.color.blue_light)
+            val glowColor = colorResource(id = R.color.colorPrimaryLight)
             val indicatorShape = RoundedCornerShape(percent = 50)
 
             NavigationBarItem(
@@ -80,7 +80,7 @@ fun NeonBottomBar(
                                 )
                                 .border(
                                     width = 0.5.dp,
-                                    color = colorResource(id = R.color.blue_bright),
+                                    color = colorResource(id = R.color.colorPrimaryAccent),
                                     shape = indicatorShape
                                 )
                                 .background(
@@ -100,11 +100,11 @@ fun NeonBottomBar(
                 },
                 label = { Text(label) },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = colorResource(id = R.color.blue_bright),
-                    selectedTextColor = colorResource(id = R.color.white),
+                    selectedIconColor = colorResource(id = R.color.colorPrimaryAccent),
+                    selectedTextColor = colorResource(id = R.color.colorOnBackground),
                     indicatorColor = Color.Transparent,
-                    unselectedIconColor = colorResource(id = R.color.white),
-                    unselectedTextColor = colorResource(id = R.color.white)
+                    unselectedIconColor = colorResource(id = R.color.colorOnBackground),
+                    unselectedTextColor = colorResource(id = R.color.colorOnBackground)
                 )
             )
 
@@ -144,7 +144,7 @@ private fun showFragment(activity: FragmentActivity, fragment: Fragment) {
 @Composable
 fun NeonBottomBarPreview() {
     MaterialTheme {
-        Surface(color = colorResource(id = R.color.bg_third)) {
+        Surface(color = colorResource(id = R.color.colorSurfaceVariant)) {
             NeonBottomBar {}
         }
     }

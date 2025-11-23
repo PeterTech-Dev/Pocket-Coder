@@ -65,13 +65,13 @@ fun SettingsContent(
     onConsoleFontChange: (Int) -> Unit,
     onClearHistory: () -> Unit
 ) {
-    val bgSecondary = colorResource(id = R.color.bg_secondary)
-    val bgThird     = colorResource(id = R.color.bg_third)
-    val white       = colorResource(id = R.color.white)
-    val grey        = colorResource(id = R.color.grey)
-    val greyDark    = colorResource(id = R.color.grey_dark)
-    val blue        = colorResource(id = R.color.blue)
-    val purple      = colorResource(id = R.color.purple)
+    val greyDark    = colorResource(id = R.color.colorOutline)
+    val blue        = colorResource(id = R.color.colorPrimary)
+    val bgSecondary = colorResource(R.color.colorSurface)
+    val bgThird     = colorResource(R.color.colorSurfaceVariant)
+    val white       = colorResource(R.color.colorOnBackground)
+    val grey        = colorResource(R.color.colorOutline)
+    val purple      = colorResource(R.color.colorSecondary)
 
     var dark by remember { mutableStateOf(useDarkTheme) }
     var auto by remember { mutableStateOf(autoApply) }

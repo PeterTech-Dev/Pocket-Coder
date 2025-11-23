@@ -10,4 +10,4 @@
     android:paddingBottom="4dp"
     android:textSize="13sp"
     android:fontFamily="monospace"
-    android:textColor="#FFB0B0B0" />
+    android:textColor="@color/colorOnSurface" />

@@ -1,30 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Backgrounds (Light Mode Base) -->
-    <color name="bg_primary">#F3F4F6</color>     <!-- App background -->
-    <color name="bg_secondary">#FFFFFF</color>   <!-- Cards / surfaces -->
-    <color name="bg_third">#E5E7EB</color>      <!-- Elevated surfaces / inputs -->
+    <!-- Backgrounds -->
+    <color name="colorBackground">#FFFFFF</color>
+    <!-- Subtle off-white surface -->
+    <color name="colorSurface">#F5F6FA</color>
+    <!-- Slightly stronger surface -->
+    <color name="colorSurfaceVariant">#ECEFF4</color>
 
-    <!-- Brand / Gradient Colors (same as dark) -->
-    <color name="purple_blue">#5C6BC0</color>
-    <color name="purple_light">#7E57C2</color>
-    <color name="purple">#673AB7</color>
+    <!-- Brand -->
+    <color name="colorPrimary">#3D5AFE</color>          <!-- blue -->
+    <color name="colorPrimaryLight">#536DFE</color>     <!-- blue_light -->
+    <color name="colorPrimaryDark">#283593</color>      <!-- blue_dark -->
+    <color name="colorPrimaryAccent">#2979FF</color>    <!-- blue_bright -->
 
-    <!-- Text / Grays (for light) -->
-    <color name="white">#FFFFFF</color>         <!-- Real white now -->
-    <color name="grey">#6B7280</color>          <!-- Body text -->
-    <color name="grey_dark">#111827</color>     <!-- Strong title text -->
+    <!-- Text -->
+    <color name="colorOnBackground">#1A1A1A</color>
+    <color name="colorOnSurface">#1A1A1A</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorHint">#616A80</color>
 
-    <!-- Blues (keep your brand accents) -->
-    <color name="blue_bright">#2979FF</color>
-    <color name="blue_light">#536DFE</color>
-    <color name="blue">#3D5AFE</color>
-    <color name="blue_dark">#1E3A8A</color>
+    <!-- Outline / Muted -->
+    <color name="colorOutline">#C2C7D0</color>
 
-    <!-- Reds -->
-    <color name="red_light">#EF4444</color>
-    <color name="red">#DC2626</color>
-    <color name="red_dark">#991B1B</color>
+    <!-- Info (blue/purple) -->
+    <color name="colorSecondary">#673AB7</color>         <!-- purple -->
+    <color name="colorSecondaryLight">#7E57C2</color>    <!-- purple_light -->
+    <color name="colorSecondaryVariant">#5C6BC0</color>  <!-- purple_blue -->
+
+    <!-- Error -->
+    <color name="colorError">#D32F2F</color>
+    <color name="colorErrorContainer">#FFCDD2</color>
 
 </resources>

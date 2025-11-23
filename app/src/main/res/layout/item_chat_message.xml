@@ -22,7 +22,7 @@
             android:id="@+id/message_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#111111"
+            android:textColor="@color/colorOnSurface"
             android:textSize="14sp"
             android:lineSpacingExtra="2dp"
             android:autoLink="web" />
@@ -37,9 +37,6 @@
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
-        <!-- ========================= -->
-        <!-- Parsed card (pretty view) -->
-        <!-- ========================= -->
         <LinearLayout
             android:id="@+id/parsed_container"
             android:layout_width="match_parent"
@@ -103,6 +100,7 @@
                 android:padding="10dp">
 
                 <HorizontalScrollView
+                    android:id="@+id/parsed_code_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:scrollbars="none"
@@ -113,7 +111,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="monospace"
-                        android:textColor="#ECEFF1"
+                        android:textColor="@color/colorOnBackground"
                         android:textSize="13sp"
                         android:textIsSelectable="true"
                         android:maxLines="16" />
@@ -124,7 +122,7 @@
                     android:id="@+id/code_fade"
                     android:layout_width="match_parent"
                     android:layout_height="36dp"
-                    android:layout_alignBottom="@id/parsed_code"
+                    android:layout_alignBottom="@id/parsed_code_view"
                     android:layout_alignParentBottom="true"
                     android:background="@drawable/bg_code_fade"
                     android:visibility="gone"/>
@@ -137,7 +135,7 @@
                     android:orientation="horizontal"
                     android:layout_alignParentEnd="true"
                     android:layout_marginTop="6dp"
-                    android:layout_below="@id/parsed_code">
+                    android:layout_below="@id/parsed_code_view">
 
                     <ImageButton
                         android:id="@+id/btn_copy_code"
@@ -146,7 +144,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/copy_code"
                         android:src="@drawable/ic_code"
-                        app:tint="#A0A0A0" />
+                        app:tint="@color/colorOnPrimary" />
 
                     <ImageButton
                         android:id="@+id/btn_expand_code"
@@ -155,14 +153,11 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/expand"
                         android:src="@drawable/ic_expand_more_24"
-                        app:tint="#A0A0A0" />
+                        app:tint="@color/colorOnPrimary" />
                 </LinearLayout>
             </RelativeLayout>
         </LinearLayout>
 
-        <!-- ========================= -->
-        <!-- Raw JSON (pretty printed) -->
-        <!-- ========================= -->
         <LinearLayout
             android:id="@+id/json_container"
             android:layout_width="match_parent"
@@ -198,7 +193,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/copy"
                     android:src="@drawable/ic_copy"
-                    app:tint="#A0A0A0" />
+                    app:tint="@color/colorOnPrimary" />
 
                 <ImageButton
                     android:id="@+id/btn_expand_json"
@@ -207,7 +202,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/expand"
                     android:src="@drawable/ic_expand_more_24"
-                    app:tint="#A0A0A0" />
+                    app:tint="@color/colorOnPrimary" />
             </LinearLayout>
 
             <HorizontalScrollView
@@ -222,7 +217,7 @@
                     android:paddingTop="4dp"
                     android:paddingBottom="2dp"
                     android:fontFamily="monospace"
-                    android:textColor="#ECEFF1"
+                    android:textColor="@color/colorOnBackground"
                     android:textSize="13sp"
                     android:textIsSelectable="true"
                     android:maxLines="14" />
@@ -238,7 +233,7 @@
             android:layout_marginTop="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_copy"
-            app:tint="#A0A0A0"
+            app:tint="@color/colorOnPrimary"
             android:contentDescription="@string/copy"
             android:visibility="gone" />
 
@@ -251,7 +246,7 @@
             android:layout_marginTop="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_code"
-            app:tint="#A0A0A0"
+            app:tint="@color/colorOnPrimary"
             android:contentDescription="@string/copy_code"
             android:visibility="gone" />
 

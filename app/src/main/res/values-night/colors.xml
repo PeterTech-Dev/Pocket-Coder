@@ -1,29 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Backgrounds (Dark Mode Base) -->
-    <color name="bg_primary">#0A0B13</color>     <!-- Almost-black indigo -->
-    <color name="bg_secondary">#10121F</color>   <!-- Slightly lighter -->
-    <color name="bg_third">#151728</color>       <!-- Soft indigo shadow -->
 
-    <!-- Brand / Gradient Colors (Deep Purple → Indigo vibe) -->
-    <color name="purple_blue">#5C6BC0</color>    <!-- Indigo 400 -->
-    <color name="purple_light">#7E57C2</color>   <!-- Deep Purple 400 -->
-    <color name="purple">#673AB7</color>         <!-- Deep Purple 500 (brand color) -->
+<!-- Backgrounds -->
+<color name="colorBackground">#0A0B13</color>
+<color name="colorSurface">#10121F</color>
+<color name="colorSurfaceVariant">#151728</color>
 
-    <!-- Whites / Grays (Cool Gray for Tech UI) -->
-    <color name="white">#ECEFF4</color>          <!-- Soft cool white -->
-    <color name="grey">#AEB6C8</color>           <!-- Clean grey -->
-    <color name="grey_dark">#5C6373</color>      <!-- Muted grey for icons -->
+<!-- Brand -->
+<color name="colorPrimary">#3D5AFE</color>         <!-- blue -->
+<color name="colorPrimaryLight">#536DFE</color>    <!-- blue_light -->
+<color name="colorPrimaryDark">#283593</color>     <!-- blue_dark -->
+<color name="colorPrimaryAccent">#2979FF</color>   <!-- blue_bright -->
 
-    <!-- Blues (Indigo Accent Set) -->
-    <color name="blue_bright">#2979FF</color>
-    <color name="blue_light">#536DFE</color>     <!-- Indigo A200 -->
-    <color name="blue">#3D5AFE</color>           <!-- Indigo A400 -->
-    <color name="blue_dark">#283593</color>      <!-- Indigo 800 -->
 
-    <!-- Reds (Premium Alert Colors) -->
-    <color name="red_light">#FF5252</color>      <!-- Accent red -->
-    <color name="red">#FF1744</color>            <!-- Deep A400 red -->
-    <color name="red_dark">#B2102F</color>       <!-- Dark red -->
+<!-- Text -->
+<color name="colorOnBackground">#ECEFF4</color>
+<color name="colorOnSurface">#ECEFF4</color>
+<color name="colorOnPrimary">#FFFFFF</color>
+<color name="colorHint">#AEB6C8</color>
+
+<!-- Outline / Muted -->
+<color name="colorOutline">#5C6373</color>
+
+<!-- Info (blue) -->
+<color name="colorSecondary">#673AB7</color>         <!-- purple -->
+<color name="colorSecondaryLight">#7E57C2</color>    <!-- purple_light -->
+<color name="colorSecondaryVariant">#5C6BC0</color>  <!-- purple_blue -->
+
+
+<!-- Error -->
+<color name="colorError">#FF1744</color>
+<color name="colorErrorContainer">#B2102F</color>
+
 </resources>
-

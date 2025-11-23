@@ -9,9 +9,9 @@
 
     <!-- Primary (gradient) button -->
     <style name="App.Button.Primary" parent="Widget.Material3.Button">
-        <item name="android:background">@drawable/button_primary</item>
+        <item name="android:background">@color/colorSecondaryLight</item>
         <item name="backgroundTint">@null</item>
-        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textColor">@color/colorOnPrimary</item>
         <item name="cornerRadius">16dp</item>
         <item name="android:minHeight">52dp</item>
         <item name="android:insetLeft">0dp</item>
@@ -20,31 +20,31 @@
 
     <!-- Outlined button -->
     <style name="App.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="strokeColor">@color/blue_light</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="strokeColor">@color/colorPrimaryLight</item>
+        <item name="android:textColor">@color/colorOnPrimary</item>
         <item name="cornerRadius">16dp</item>
     </style>
 
     <!-- TextInputLayout (the container) -->
     <style name="App.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
-        <item name="boxBackgroundColor">@color/bg_third</item>
-        <item name="boxStrokeColor">@color/input_box_stroke_color</item>
+        <item name="boxBackgroundColor">@color/colorSurfaceVariant</item>
+        <item name="boxStrokeColor">@color/colorSecondaryVariant</item>
         <item name="boxStrokeWidth">1dp</item>
-        <item name="hintTextColor">@color/grey</item>
+        <item name="hintTextColor">@color/colorHint</item>
         <item name="shapeAppearance">@style/App.Shape.MD</item>
     </style>
 
     <!-- TextInputEditText (the field inside) -->
     <style name="App.TextInput.EditText" parent="Widget.Material3.TextInputEditText.OutlinedBox">
-        <item name="android:textColor">@color/white</item>
-        <item name="android:textColorHint">@color/grey</item>
+        <item name="android:textColor">@color/colorOnPrimary</item>
+        <item name="android:textColorHint">@color/colorHint</item>
     </style>
 
     <!-- Bottom nav -->
     <style name="App.BottomNav" parent="Widget.Material3.BottomNavigationView">
-        <item name="itemIconTint">@color/nav_icon_tint</item>
-        <item name="itemTextColor">@color/nav_icon_tint</item>
-        <item name="android:background">@color/bg_secondary</item>
+        <item name="itemIconTint">@color/colorSecondaryVariant</item>
+        <item name="itemTextColor">@color/colorSecondaryVariant</item>
+        <item name="android:background">@color/colorSurface</item>
         <item name="itemActiveIndicatorStyle">@style/App.BottomNav.ActiveIndicator</item>
     </style>
 
@@ -54,7 +54,7 @@
         parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
 
         <!-- Color -->
-        <item name="android:color">#445C6BC0</item>
+        <item name="android:color">@color/colorOutline</item>
 
         <!-- Size -->
         <item name="android:width">64dp</item>
@@ -74,22 +74,33 @@
 
     <!-- Cards -->
     <style name="App.Card" parent="Widget.Material3.CardView.Elevated">
-        <item name="android:background">@color/bg_third</item>
+        <item name="android:background">@color/colorSurfaceVariant</item>
         <item name="shapeAppearance">@style/App.Shape.MD</item>
         <item name="android:elevation">2dp</item>
     </style>
 
     <!-- Dialog -->
     <style name="ThemeOverlay.AiAssistantCoder.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="colorSurface">@color/bg_third</item>
-        <item name="colorOnSurface">@color/white</item>
+        <item name="colorSurface">@color/colorSurfaceVariant</item>
+        <item name="colorOnSurface">@color/colorOnBackground</item>
         <item name="shapeAppearanceMediumComponent">@style/App.Shape.MD</item>
     </style>
 
     <!-- Bottom sheet -->
     <style name="ThemeOverlay.AiAssistantCoder.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
-        <item name="colorSurface">@color/bg_third</item>
-        <item name="colorOnSurface">@color/white</item>
+        <item name="colorSurface">@color/colorSurfaceVariant</item>
+        <item name="colorOnSurface">@color/colorOnBackground</item>
+    </style>
+
+    <!-- Project title text -->
+    <style name="Text.ProjectTitle" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/colorOnSurface</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Project date text -->
+    <style name="Text.ProjectDate" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/colorHint</item>
     </style>
 
 

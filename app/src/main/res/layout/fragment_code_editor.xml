@@ -6,7 +6,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#101015">
+    android:background="@drawable/bg_gradient">
 
     <!-- main content area -->
     <FrameLayout
@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:orientation="horizontal"
-                android:background="#222228"
+                android:background="@color/colorSurfaceVariant"
                 android:elevation="2dp">
 
                 <!-- tabs -->
@@ -41,9 +41,9 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     app:tabMode="scrollable"
-                    app:tabIndicatorColor="@android:color/white"
-                    app:tabSelectedTextColor="@android:color/white"
-                    app:tabTextColor="#B0B0B0"
+                    app:tabIndicatorColor="@color/colorSurface"
+                    app:tabSelectedTextColor="@color/colorSurface"
+                    app:tabTextColor="@color/colorOnBackground"
                     app:tabIndicatorHeight="2dp" />
 
                 <!-- right-side actions -->
@@ -61,7 +61,7 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:background="@android:color/transparent"
-                        app:tint="@android:color/white"
+                        app:tint="@color/colorOnBackground"
                         android:src="@android:drawable/ic_input_add"
                         android:contentDescription="Add file"
                         android:padding="4dp" />
@@ -72,7 +72,7 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:background="@android:color/transparent"
-                        app:tint="@android:color/white"
+                        app:tint="@color/colorOnBackground"
                         android:src="@android:drawable/ic_menu_close_clear_cancel"
                         android:contentDescription="Close tab"
                         android:padding="4dp" />
@@ -83,7 +83,7 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:background="@android:color/transparent"
-                        app:tint="@android:color/white"
+                        app:tint="@color/colorOnBackground"
                         android:src="@android:drawable/ic_menu_sort_by_size"
                         android:contentDescription="Files"
                         android:padding="4dp" />
@@ -98,7 +98,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 tools:text="// Write your code here"
-                android:background="#101015" />
+                android:background="@color/colorBackground" />
         </LinearLayout>
 
         <!-- files panel overlay -->
@@ -107,7 +107,7 @@
             android:layout_width="240dp"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:background="#151519"
+            android:background="@color/colorSurface"
             android:visibility="gone"
             android:elevation="8dp">
 
@@ -117,7 +117,7 @@
                 android:gravity="center_vertical"
                 android:paddingStart="16dp"
                 android:text="Files"
-                android:textColor="@android:color/white"
+                android:textColor="@color/colorOnSurface"
                 android:textStyle="bold"
                 android:textSize="15sp" />
 
@@ -147,7 +147,7 @@
         app:srcCompat="@android:drawable/ic_media_play"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:tint="@android:color/white" />
+        android:tint="@color/colorBackground" />
 
     <!-- little spinner -->
     <ProgressBar
