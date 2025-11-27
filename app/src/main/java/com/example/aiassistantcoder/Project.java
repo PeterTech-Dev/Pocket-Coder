@@ -35,27 +35,65 @@ public class Project implements Serializable {
     }
 
     // getters
-    public String getId() { return id; }
-    public String getTitle() { return title; }
+    public String getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
     @ServerTimestamp
-    public Date getCreatedAt() { return createdAt; }
-    public List<Message> getMessages() { return messages; }
-    public List<String> getTags() { return tags; }
-    public String getCode() { return code; }
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public String getCode() {
+        return code;
+    }
 
     // 👇 NEW
-    public List<ProjectFile> getFiles() { return files; }
+    public List<ProjectFile> getFiles() {
+        return files;
+    }
 
     // setters
-    public void setId(String id) { this.id = id; }
-    public void setTitle(String title) { this.title = title; }
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
-    public void setMessages(List<Message> messages) { this.messages = messages; }
-    public void setTags(List<String> tags) { this.tags = tags; }
-    public void setCode(String code) { this.code = code; }
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     // 👇 NEW
-    public void setFiles(List<ProjectFile> files) { this.files = files; }
+    public void setFiles(List<ProjectFile> files) {
+        this.files = files;
+    }
 
     public void addMessage(Message message) {
         if (this.messages == null) {

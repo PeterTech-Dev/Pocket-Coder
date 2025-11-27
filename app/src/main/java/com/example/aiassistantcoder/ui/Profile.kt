@@ -1,13 +1,33 @@
 package com.example.aiassistantcoder.ui
 
 import android.app.Activity
-import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonDefaults.outlinedButtonColors
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -141,11 +161,11 @@ fun SignInContent(
     onRegisterClick: () -> Unit
 ) {
     val bgSecondary = colorResource(R.color.colorSurface)
-    val bgThird     = colorResource(R.color.colorSurfaceVariant)
-    val white       = colorResource(R.color.colorOnBackground)
-    val grey        = colorResource(R.color.colorOutline)
-    val purple      = colorResource(R.color.colorSecondary)
-    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
+    val bgThird = colorResource(R.color.colorSurfaceVariant)
+    val white = colorResource(R.color.colorOnBackground)
+    val grey = colorResource(R.color.colorOutline)
+    val purple = colorResource(R.color.colorSecondary)
+    val purpleBlue = colorResource(R.color.colorSecondaryVariant)
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -301,12 +321,12 @@ fun PhoneSignInDialogContent(
     onDismiss: () -> Unit
 ) {
     val bgSecondary = colorResource(R.color.colorSurface)
-    val bgThird     = colorResource(R.color.colorSurfaceVariant)
-    val white       = colorResource(R.color.colorOnBackground)
-    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
+    val bgThird = colorResource(R.color.colorSurfaceVariant)
+    val white = colorResource(R.color.colorOnBackground)
+    val purpleBlue = colorResource(R.color.colorSecondaryVariant)
 
     var phone by remember { mutableStateOf("") }
-    var code  by remember { mutableStateOf("") }
+    var code by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -423,10 +443,10 @@ fun RegisterContent(
     onBackToSignIn: () -> Unit
 ) {
     val bgSecondary = colorResource(R.color.colorSurface)
-    val bgThird     = colorResource(R.color.colorSurfaceVariant)
-    val white       = colorResource(R.color.colorOnBackground)
-    val grey        = colorResource(R.color.colorOutline)
-    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
+    val bgThird = colorResource(R.color.colorSurfaceVariant)
+    val white = colorResource(R.color.colorOnBackground)
+    val grey = colorResource(R.color.colorOutline)
+    val purpleBlue = colorResource(R.color.colorSecondaryVariant)
 
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -611,17 +631,17 @@ fun RegisterContent(
 fun ReauthPasswordContent(
     onSubmitPassword: (String) -> Unit
 ) {
-    val bgPrimary   = colorResource(R.color.colorBackground)
+    val bgPrimary = colorResource(R.color.colorBackground)
     val bgSecondary = colorResource(R.color.colorSurface)
-    val bgThird     = colorResource(R.color.colorSurfaceVariant)
-    val white       = colorResource(R.color.colorOnBackground)
-    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
+    val bgThird = colorResource(R.color.colorSurfaceVariant)
+    val white = colorResource(R.color.colorOnBackground)
+    val purpleBlue = colorResource(R.color.colorSecondaryVariant)
 
     var password by remember { mutableStateOf("") }
 
     // Get activity so we can close this screen from Compose
     val context = LocalContext.current
-    val activity = context as? android.app.Activity
+    val activity = context as? Activity
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -709,11 +729,11 @@ fun ReauthPasswordContent(
 fun NewPasswordContent(
     onUpdatePassword: (String) -> Unit
 ) {
-    val bgPrimary   = colorResource(R.color.colorBackground)
+    val bgPrimary = colorResource(R.color.colorBackground)
     val bgSecondary = colorResource(R.color.colorSurface)
-    val bgThird     = colorResource(R.color.colorSurfaceVariant)
-    val white       = colorResource(R.color.colorOnBackground)
-    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
+    val bgThird = colorResource(R.color.colorSurfaceVariant)
+    val white = colorResource(R.color.colorOnBackground)
+    val purpleBlue = colorResource(R.color.colorSecondaryVariant)
 
     val context = LocalContext.current
     val activity = context as? Activity   // <- safe cast
@@ -796,7 +816,8 @@ fun NewPasswordContent(
                             val np = newPassword.trim()
                             val cp = confirmPassword.trim()
 
-                            val root = activity?.findViewById<android.view.View>(android.R.id.content)
+                            val root =
+                                activity?.findViewById<android.view.View>(android.R.id.content)
 
                             when {
                                 root == null -> {
@@ -859,9 +880,9 @@ fun LoggedInContent(
     onSignOut: () -> Unit
 ) {
     val bgSecondary = colorResource(R.color.colorSurface)
-    val bgThird     = colorResource(R.color.colorSurfaceVariant)
-    val white       = colorResource(R.color.colorOnBackground)
-    val purpleBlue  = colorResource(R.color.colorSecondaryVariant)
+    val bgThird = colorResource(R.color.colorSurfaceVariant)
+    val white = colorResource(R.color.colorOnBackground)
+    val purpleBlue = colorResource(R.color.colorSecondaryVariant)
 
     var newName by remember { mutableStateOf("") }
 

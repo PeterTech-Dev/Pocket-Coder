@@ -21,11 +21,11 @@ public class AiUpdateViewModel extends ViewModel {
 
         public CodeUpdate(String language, String runtime, String notes, String code) {
             this.language = language == null ? "" : language;
-            this.runtime  = runtime  == null ? "" : runtime;
-            this.notes    = notes    == null ? "" : notes;
-            this.code     = code     == null ? "" : code;
-            this.files    = new ArrayList<>();   // <-- fix
-            this.nonce    = System.nanoTime();
+            this.runtime = runtime == null ? "" : runtime;
+            this.notes = notes == null ? "" : notes;
+            this.code = code == null ? "" : code;
+            this.files = new ArrayList<>();   // <-- fix
+            this.nonce = System.nanoTime();
         }
     }
 
@@ -40,10 +40,10 @@ public class AiUpdateViewModel extends ViewModel {
                            String filename,
                            String summary,
                            String content) {
-            this.path     = path     == null ? "" : path;
+            this.path = path == null ? "" : path;
             this.filename = filename == null ? "" : filename;
-            this.summary  = summary  == null ? "" : summary;
-            this.content  = content  == null ? "" : content;
+            this.summary = summary == null ? "" : summary;
+            this.content = content == null ? "" : content;
         }
     }
 
@@ -59,11 +59,11 @@ public class AiUpdateViewModel extends ViewModel {
                              String entrypoint,
                              List<ProjectFile> files,
                              String notes) {
-            this.language  = language  == null ? "" : language;
-            this.runtime   = runtime   == null ? "" : runtime;
+            this.language = language == null ? "" : language;
+            this.runtime = runtime == null ? "" : runtime;
             this.entrypoint = entrypoint == null ? "" : entrypoint;
-            this.files     = files == null ? new ArrayList<>() : files;
-            this.notes     = notes     == null ? "" : notes;
+            this.files = files == null ? new ArrayList<>() : files;
+            this.notes = notes == null ? "" : notes;
         }
     }
 

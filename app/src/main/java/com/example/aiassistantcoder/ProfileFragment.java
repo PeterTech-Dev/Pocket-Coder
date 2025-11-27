@@ -2,11 +2,11 @@ package com.example.aiassistantcoder;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -47,6 +47,7 @@ public class ProfileFragment extends Fragment {
 
     private LinearLayout loggedInView, loggedOutView;
     private ComposeView loggedInCompose, loggedOutCompose;
+    private View rootView;
 
     private GoogleSignInClient mGoogleSignInClient;
 
@@ -64,12 +65,7 @@ public class ProfileFragment extends Fragment {
 
                 @Override
                 public void onVerificationFailed(@NonNull FirebaseException e) {
-                    SnackBarApp.INSTANCE.show(
-                            requireActivity().findViewById(android.R.id.content),
-                            "Verification failed: " + e.getMessage(),
-                            SnackBarApp.Type.ERROR
-                    );
-
+                    showSnack("Verification failed: " + e.getMessage(), SnackBarApp.Type.ERROR);
                 }
 
                 @Override
@@ -77,24 +73,14 @@ public class ProfileFragment extends Fragment {
                                        @NonNull PhoneAuthProvider.ForceResendingToken token) {
                     phoneVerificationId = verificationId;
                     phoneResendToken = token;
-                    SnackBarApp.INSTANCE.show(
-                            requireActivity().findViewById(android.R.id.content),
-                            "Code sent",
-                            SnackBarApp.Type.SUCCESS
-                    );
-
+                    showSnack("Code sent", SnackBarApp.Type.SUCCESS);
                 }
             };
 
     private final ActivityResultLauncher<Intent> googleSignInLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getData() == null) {
-                    SnackBarApp.INSTANCE.show(
-                            requireActivity().findViewById(android.R.id.content),
-                            "Google sign-in cancelled",
-                            SnackBarApp.Type.ERROR
-                    );
-
+                    showSnack("Google sign-in cancelled", SnackBarApp.Type.ERROR);
                     return;
                 }
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
@@ -102,12 +88,8 @@ public class ProfileFragment extends Fragment {
                     GoogleSignInAccount account = task.getResult(ApiException.class);
                     if (account != null) firebaseAuthWithGoogle(account.getIdToken());
                 } catch (ApiException e) {
-                    SnackBarApp.INSTANCE.show(
-                            requireActivity().findViewById(android.R.id.content),
-                            "Google sign-in failed",
-                            SnackBarApp.Type.ERROR
-                    );
-
+                    Log.d("ProfileFragment", "Google sign-in failed, code: " + e.getStatusCode(), e);
+                    showSnack("Google sign-in failed", SnackBarApp.Type.ERROR);
                 }
             });
 
@@ -118,13 +100,14 @@ public class ProfileFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
+        rootView = view;
 
         mAuth = FirebaseAuth.getInstance();
         authListener = firebaseAuth -> updateUI(firebaseAuth.getCurrentUser());
 
-        loggedInView     = view.findViewById(R.id.logged_in_view);
-        loggedOutView    = view.findViewById(R.id.logged_out_view);
-        loggedInCompose  = view.findViewById(R.id.logged_in_compose);
+        loggedInView = view.findViewById(R.id.logged_in_view);
+        loggedOutView = view.findViewById(R.id.logged_out_view);
+        loggedInCompose = view.findViewById(R.id.logged_in_compose);
         loggedOutCompose = view.findViewById(R.id.logged_out_compose);
 
         setupGoogleSignIn();
@@ -140,23 +123,18 @@ public class ProfileFragment extends Fragment {
                         email = email.trim();
                         password = password.trim();
                         if (email.isEmpty() || password.isEmpty()) {
-                            SnackBarApp.INSTANCE.show(
-                                    requireActivity().findViewById(android.R.id.content),
-                                    "Email and Password required",
-                                    SnackBarApp.Type.WARNING
-                            );
-
+                            showSnack("Email and Password required", SnackBarApp.Type.WARNING);
                             return Unit.INSTANCE;
                         }
                         mAuth.signInWithEmailAndPassword(email, password)
                                 .addOnCompleteListener(task -> {
                                     if (!task.isSuccessful()) {
-                                        SnackBarApp.INSTANCE.show(
-                                                requireActivity().findViewById(android.R.id.content),
-                                                "Authentication failed",
-                                                SnackBarApp.Type.ERROR
-                                        );
-
+                                        Exception e = task.getException();
+                                        String msg = "Authentication failed";
+                                        if (e != null && e.getMessage() != null) {
+                                            msg += ": " + e.getMessage();
+                                        }
+                                        showSnack(msg, SnackBarApp.Type.ERROR);
                                     }
                                     // authListener will update UI
                                 });
@@ -168,8 +146,12 @@ public class ProfileFragment extends Fragment {
                 new Function0<Unit>() {
                     @Override
                     public Unit invoke() {
-                        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-                        googleSignInLauncher.launch(signInIntent);
+                        if (mGoogleSignInClient != null) {
+                            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                            googleSignInLauncher.launch(signInIntent);
+                        } else {
+                            showSnack("Google Sign-In not available", SnackBarApp.Type.ERROR);
+                        }
                         return Unit.INSTANCE;
                     }
                 },
@@ -198,27 +180,20 @@ public class ProfileFragment extends Fragment {
                     public Unit invoke(String email) {
                         email = email.trim();
                         if (email.isEmpty()) {
-                            SnackBarApp.INSTANCE.show(
-                                    requireActivity().findViewById(android.R.id.content),
-                                    "Enter your email first",
-                                    SnackBarApp.Type.WARNING
-                            );
+                            showSnack("Enter your email first", SnackBarApp.Type.WARNING);
                             return Unit.INSTANCE;
                         }
                         mAuth.sendPasswordResetEmail(email)
                                 .addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
-                                        SnackBarApp.INSTANCE.show(
-                                                requireActivity().findViewById(android.R.id.content),
-                                                "Reset link sent",
-                                                SnackBarApp.Type.SUCCESS
-                                        );
+                                        showSnack("Reset link sent", SnackBarApp.Type.SUCCESS);
                                     } else {
-                                        SnackBarApp.INSTANCE.show(
-                                                requireActivity().findViewById(android.R.id.content),
-                                                "Failed to send reset link",
-                                                SnackBarApp.Type.ERROR
-                                        );
+                                        Exception e = task.getException();
+                                        String msg = "Failed to send reset link";
+                                        if (e != null && e.getMessage() != null) {
+                                            msg += ": " + e.getMessage();
+                                        }
+                                        showSnack(msg, SnackBarApp.Type.ERROR);
                                     }
                                 });
                         return Unit.INSTANCE;
@@ -229,9 +204,10 @@ public class ProfileFragment extends Fragment {
                 new Function0<Unit>() {
                     @Override
                     public Unit invoke() {
-                        Intent intent = new Intent(requireActivity(), RegisterActivity.class);
+                        if (getActivity() == null) return Unit.INSTANCE;
+                        Intent intent = new Intent(getActivity(), RegisterActivity.class);
                         startActivity(intent);
-                        requireActivity().overridePendingTransition(
+                        getActivity().overridePendingTransition(
                                 android.R.anim.fade_in,
                                 android.R.anim.fade_out
                         );
@@ -247,11 +223,18 @@ public class ProfileFragment extends Fragment {
 
     private void sendPhoneVerificationCode(String phone) {
         if (phone.isEmpty()) {
-            SnackBarApp.INSTANCE.show(
-                    requireActivity().findViewById(android.R.id.content),
-                    "Enter phone number",
-                    SnackBarApp.Type.WARNING
-            );
+            showSnack("Enter phone number", SnackBarApp.Type.WARNING);
+            return;
+        }
+
+        // Basic format check – you can make this stricter if needed
+        if (!phone.startsWith("+")) {
+            showSnack("Phone must start with + and country code (e.g. +27...)", SnackBarApp.Type.WARNING);
+            return;
+        }
+
+        if (mAuth == null || getActivity() == null) {
+            showSnack("Phone auth not available", SnackBarApp.Type.ERROR);
             return;
         }
 
@@ -259,7 +242,7 @@ public class ProfileFragment extends Fragment {
                 PhoneAuthOptions.newBuilder(mAuth)
                         .setPhoneNumber(phone) // must be in +E.164 format (+27...)
                         .setTimeout(60L, TimeUnit.SECONDS)
-                        .setActivity(requireActivity())
+                        .setActivity(getActivity())
                         .setCallbacks(phoneCallbacks)
                         .build();
 
@@ -268,11 +251,7 @@ public class ProfileFragment extends Fragment {
 
     private void verifyPhoneCode(String code) {
         if (phoneVerificationId == null || code.isEmpty()) {
-            SnackBarApp.INSTANCE.show(
-                    requireActivity().findViewById(android.R.id.content),
-                    "Request a code first",
-                    SnackBarApp.Type.WARNING
-            );
+            showSnack("Request a code first", SnackBarApp.Type.WARNING);
             return;
         }
         PhoneAuthCredential credential =
@@ -281,20 +260,20 @@ public class ProfileFragment extends Fragment {
     }
 
     private void signInWithPhoneCredential(PhoneAuthCredential credential) {
+        if (getActivity() == null) return;
+
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(requireActivity(), task -> {
+                .addOnCompleteListener(getActivity(), task -> {
                     if (task.isSuccessful()) {
-                        SnackBarApp.INSTANCE.show(
-                                requireActivity().findViewById(android.R.id.content),
-                                "Signed in with phone",
-                                SnackBarApp.Type.SUCCESS
-                        );
+                        showSnack("Signed in with phone", SnackBarApp.Type.SUCCESS);
+                        updateUI(mAuth.getCurrentUser());
                     } else {
-                        SnackBarApp.INSTANCE.show(
-                                requireActivity().findViewById(android.R.id.content),
-                                "Phone sign-in failed",
-                                SnackBarApp.Type.ERROR
-                        );
+                        Exception e = task.getException();
+                        String msg = "Phone sign-in failed";
+                        if (e != null && e.getMessage() != null) {
+                            msg += ": " + e.getMessage();
+                        }
+                        showSnack(msg, SnackBarApp.Type.ERROR);
                     }
                 });
     }
@@ -302,41 +281,68 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        if (authListener != null) mAuth.addAuthStateListener(authListener);
-        updateUI(mAuth.getCurrentUser());
+        if (authListener != null && mAuth != null) {
+            mAuth.addAuthStateListener(authListener);
+        }
+        if (mAuth != null) {
+            updateUI(mAuth.getCurrentUser());
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (authListener != null) mAuth.removeAuthStateListener(authListener);
+        if (authListener != null && mAuth != null) {
+            mAuth.removeAuthStateListener(authListener);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        rootView = null;
+        loggedInView = null;
+        loggedOutView = null;
+        loggedInCompose = null;
+        loggedOutCompose = null;
     }
 
     // =================== GOOGLE HELPERS ===================
     private void setupGoogleSignIn() {
+        if (getActivity() == null) return;
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
-        mGoogleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
+        mGoogleSignInClient = GoogleSignIn.getClient(getActivity(), gso);
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
+        if (idToken == null || getActivity() == null) {
+            showSnack("Invalid Google token", SnackBarApp.Type.ERROR);
+            return;
+        }
+
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(requireActivity(), task -> {
-                    if (!task.isSuccessful()) {
-                        SnackBarApp.INSTANCE.show(
-                                requireActivity().findViewById(android.R.id.content),
-                                "Google auth failed",
-                                SnackBarApp.Type.ERROR
-                        );
+                .addOnCompleteListener(getActivity(), task -> {
+                    if (task.isSuccessful()) {
+                        updateUI(mAuth.getCurrentUser());
+                    } else {
+                        Log.d("firebaseAuthWithGoogle", "signInWithCredential:failure", task.getException());
+                        showSnack("Google auth failed", SnackBarApp.Type.ERROR);
                     }
                 });
     }
 
     // =================== UI ===================
     private void updateUI(FirebaseUser user) {
+        // If view hierarchy is gone, do nothing
+        if (loggedInView == null || loggedOutView == null || loggedInCompose == null) {
+            return;
+        }
+
         if (user != null) {
             loggedInView.setVisibility(View.VISIBLE);
             loggedOutView.setVisibility(View.GONE);
@@ -355,6 +361,7 @@ public class ProfileFragment extends Fragment {
             ProfileKt.bindLoggedInContent(
                     loggedInCompose,
                     welcome,
+                    // onUpdateName(newName)
                     new Function1<String, Unit>() {
                         @Override
                         public Unit invoke(String newName) {
@@ -368,11 +375,10 @@ public class ProfileFragment extends Fragment {
                                                 .build();
                                 u.updateProfile(req).addOnCompleteListener(t -> {
                                     if (t.isSuccessful()) {
-                                        SnackBarApp.INSTANCE.show(
-                                                requireActivity().findViewById(android.R.id.content),
-                                                "Display name updated",
-                                                SnackBarApp.Type.SUCCESS
-                                        );
+                                        showSnack("Display name updated", SnackBarApp.Type.SUCCESS);
+                                        updateUI(mAuth.getCurrentUser());
+                                    } else {
+                                        showSnack("Failed to update display name", SnackBarApp.Type.ERROR);
                                     }
                                 });
                             }
@@ -383,6 +389,7 @@ public class ProfileFragment extends Fragment {
                     new Function0<Unit>() {
                         @Override
                         public Unit invoke() {
+                            if (getActivity() == null) return Unit.INSTANCE;
                             startActivity(new Intent(getActivity(), ReauthActivity.class));
                             return Unit.INSTANCE;
                         }
@@ -391,7 +398,13 @@ public class ProfileFragment extends Fragment {
                     new Function0<Unit>() {
                         @Override
                         public Unit invoke() {
-                            mAuth.signOut();
+                            if (mAuth != null) {
+                                mAuth.signOut();
+                            }
+                            if (mGoogleSignInClient != null) {
+                                mGoogleSignInClient.signOut();
+                            }
+                            updateUI(null);
                             return Unit.INSTANCE;
                         }
                     }
@@ -401,5 +414,11 @@ public class ProfileFragment extends Fragment {
             loggedInView.setVisibility(View.GONE);
             loggedOutView.setVisibility(View.VISIBLE);
         }
+    }
+
+    // ---------- Helper for snackbars ----------
+    private void showSnack(String message, SnackBarApp.Type type) {
+        if (!isAdded() || rootView == null) return;
+        SnackBarApp.INSTANCE.show(rootView, message, type);
     }
 }

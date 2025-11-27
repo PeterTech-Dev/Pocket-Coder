@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -73,10 +72,10 @@ public class ProfileRegisterFragment extends Fragment {
     ) {
         final String fName = firstName == null ? "" : firstName.trim();
         final String lName = lastName == null ? "" : lastName.trim();
-        final String e     = email == null ? "" : email.trim();
-        final String ce    = confirmEmail == null ? "" : confirmEmail.trim();
-        final String p     = password == null ? "" : password.trim();
-        final String cp    = confirmPassword == null ? "" : confirmPassword.trim();
+        final String e = email == null ? "" : email.trim();
+        final String ce = confirmEmail == null ? "" : confirmEmail.trim();
+        final String p = password == null ? "" : password.trim();
+        final String cp = confirmPassword == null ? "" : confirmPassword.trim();
 
         View root = requireActivity().findViewById(android.R.id.content);
 

@@ -5,7 +5,8 @@ public class ProjectFile {
     public String content; // whole file text
 
     // Firestore needs a no-arg constructor
-    public ProjectFile() { }
+    public ProjectFile() {
+    }
 
     public ProjectFile(String path, String content) {
         this.path = path;

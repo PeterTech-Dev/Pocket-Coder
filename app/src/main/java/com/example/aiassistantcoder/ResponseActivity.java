@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -53,10 +52,10 @@ public class ResponseActivity extends AppCompatActivity implements CodeEditorFra
         });
 
         // read intent extras
-        aiCode        = getIntent().getStringExtra("ai_code");
-        aiLanguage    = getIntent().getStringExtra("ai_language");
-        aiRuntime     = getIntent().getStringExtra("ai_runtime");
-        aiNotes       = getIntent().getStringExtra("ai_notes");
+        aiCode = getIntent().getStringExtra("ai_code");
+        aiLanguage = getIntent().getStringExtra("ai_language");
+        aiRuntime = getIntent().getStringExtra("ai_runtime");
+        aiNotes = getIntent().getStringExtra("ai_notes");
         aiProjectJson = getIntent().getStringExtra("ai_project_json");
 
         Log.d(TAG, "Intent extras dump -> " +
@@ -130,14 +129,20 @@ public class ResponseActivity extends AppCompatActivity implements CodeEditorFra
             @Override
             public Fragment createFragment(int position) {
                 switch (position) {
-                    case 0: return chatFragment;
-                    case 1: return codeEditorFragment;
+                    case 0:
+                        return chatFragment;
+                    case 1:
+                        return codeEditorFragment;
                     case 2:
-                    default: return consoleFragment;
+                    default:
+                        return consoleFragment;
                 }
             }
+
             @Override
-            public int getItemCount() { return 3; }
+            public int getItemCount() {
+                return 3;
+            }
         });
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {

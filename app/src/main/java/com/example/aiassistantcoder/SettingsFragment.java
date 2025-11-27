@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,8 +30,8 @@ public class SettingsFragment extends Fragment {
     private static final String PREF_DARK_THEME = "dark_theme";
 
     // New font keys (public so other screens can read them)
-    public static final String PREF_EDITOR_FONT   = "pref_editor_font";   // editor font value
-    public static final String PREF_CONSOLE_FONT  = "pref_console_font";  // console font value
+    public static final String PREF_EDITOR_FONT = "pref_editor_font";   // editor font value
+    public static final String PREF_CONSOLE_FONT = "pref_console_font";  // console font value
 
     // Compatibility: some code reads this key for the editor font
     private static final String KEY_CODE_FONT_FAMILY = "code_font_family"; // mirror of PREF_EDITOR_FONT
@@ -61,7 +60,7 @@ public class SettingsFragment extends Fragment {
         String[] fontValuesArr = getResources().getStringArray(R.array.code_fonts_values);
         List<String> fontLabels = Arrays.asList(fontLabelsArr);
 
-        String editorSaved  = prefs.getString(PREF_EDITOR_FONT,  "system_monospace");
+        String editorSaved = prefs.getString(PREF_EDITOR_FONT, "system_monospace");
         String consoleSaved = prefs.getString(PREF_CONSOLE_FONT, "system_monospace");
 
         int editorIndex = indexOfValue(fontValuesArr, editorSaved);
@@ -127,6 +126,10 @@ public class SettingsFragment extends Fragment {
                         getParentFragmentManager()
                                 .beginTransaction()
                                 .detach(projectsFragment)
+                                .commit();
+
+                        getParentFragmentManager()
+                                .beginTransaction()
                                 .attach(projectsFragment)
                                 .commit();
                     }

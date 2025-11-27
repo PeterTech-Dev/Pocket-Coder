@@ -5,5 +5,7 @@
     <string name="copy_code">Copy code</string>
     <string name="expand">Expand</string>
     <string name="collapse">Collapse</string>
+    <string name="delete">Delete</string>
+    <string name="add_file">Add File</string>
     <string name="default_web_client_id">231013439455-4takjg0fjlid4ith5q5co20jg66dpald.apps.googleusercontent.com</string>
 </resources>

@@ -1,16 +1,15 @@
 package com.example.aiassistantcoder;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.FieldValue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,20 +21,39 @@ import java.util.Map;
 
 public class ProjectRepository {
     private static final ProjectRepository INSTANCE = new ProjectRepository();
-    public static ProjectRepository getInstance() { return INSTANCE; }
+
+    public static ProjectRepository getInstance() {
+        return INSTANCE;
+    }
 
     private final List<Project> projects = new ArrayList<>();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    public interface ProjectsListener { void onChanged(List<Project> projects); }
+    public interface ProjectsListener {
+        void onChanged(List<Project> projects);
+    }
+
     private final List<ProjectsListener> listeners = new ArrayList<>();
-    public void addListener(ProjectsListener l){ listeners.add(l); }
-    public void removeListener(ProjectsListener l){ listeners.remove(l); }
-    private void notifyListeners(){ for (var l: listeners) l.onChanged(Collections.unmodifiableList(projects)); }
 
-    public List<Project> getProjects() { return projects; }
+    public void addListener(ProjectsListener l) {
+        listeners.add(l);
+    }
 
-    /** Local add (optional for anonymous use) */
+    public void removeListener(ProjectsListener l) {
+        listeners.remove(l);
+    }
+
+    private void notifyListeners() {
+        for (var l : listeners) l.onChanged(Collections.unmodifiableList(projects));
+    }
+
+    public List<Project> getProjects() {
+        return projects;
+    }
+
+    /**
+     * Local add (optional for anonymous use)
+     */
     public void addProject(Project p) {
         projects.add(p);
         notifyListeners();
@@ -50,8 +68,14 @@ public class ProjectRepository {
         return null;
     }
 
-    /** Save to Firestore under users/{uid}/projects and keep repo in sync */
-    public interface ProjectSaveCallback { void onSaved(String projectId); void onError(Exception e); }
+    /**
+     * Save to Firestore under users/{uid}/projects and keep repo in sync
+     */
+    public interface ProjectSaveCallback {
+        void onSaved(String projectId);
+
+        void onError(Exception e);
+    }
 
     public void saveProjectToFirestore(Project project, ProjectSaveCallback cb) {
         FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
@@ -130,7 +154,9 @@ public class ProjectRepository {
         }
     }
 
-    /** Real-time list sync for ProjectsFragment */
+    /**
+     * Real-time list sync for ProjectsFragment
+     */
     private ListenerRegistration liveReg;
 
     public void startRealtimeSync() {
@@ -179,7 +205,10 @@ public class ProjectRepository {
     }
 
     public void stopRealtimeSync() {
-        if (liveReg != null) { liveReg.remove(); liveReg = null; }
+        if (liveReg != null) {
+            liveReg.remove();
+            liveReg = null;
+        }
     }
 
     public void clearProjects() {

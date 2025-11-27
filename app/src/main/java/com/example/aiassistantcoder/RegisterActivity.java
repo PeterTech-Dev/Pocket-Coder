@@ -2,7 +2,6 @@ package com.example.aiassistantcoder;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -67,10 +66,10 @@ public class RegisterActivity extends AppCompatActivity {
 
         final String fName = firstName == null ? "" : firstName.trim();
         final String lName = lastName == null ? "" : lastName.trim();
-        final String e     = email == null ? "" : email.trim();
-        final String ce    = confirmEmail == null ? "" : confirmEmail.trim();
-        final String p     = password == null ? "" : password.trim();
-        final String cp    = confirmPassword == null ? "" : confirmPassword.trim();
+        final String e = email == null ? "" : email.trim();
+        final String ce = confirmEmail == null ? "" : confirmEmail.trim();
+        final String p = password == null ? "" : password.trim();
+        final String cp = confirmPassword == null ? "" : confirmPassword.trim();
 
         // --- validation ---
         if (fName.isEmpty() || lName.isEmpty()) {

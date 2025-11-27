@@ -2,7 +2,6 @@ package com.example.aiassistantcoder;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.compose.ui.platform.ComposeView;
@@ -33,59 +32,63 @@ public class ReauthActivity extends AppCompatActivity {
         showReauthStep();
     }
 
-    /** Step 1: ask user for their current password and re-authenticate them. */
+    /**
+     * Step 1: ask user for their current password and re-authenticate them.
+     */
     private void showReauthStep() {
         ProfileKt.bindReauthPasswordContent(
-            composeView,
-            new Function1<String, Unit>() {
-                @Override
-                public Unit invoke(String password) {
+                composeView,
+                new Function1<String, Unit>() {
+                    @Override
+                    public Unit invoke(String password) {
 
-                    View root = findViewById(android.R.id.content);   // reuse for all snackbars
+                        View root = findViewById(android.R.id.content);   // reuse for all snackbars
 
-                    String pwd = password == null ? "" : password.trim();
-                    if (pwd.isEmpty()) {
-                        SnackBarApp.INSTANCE.show(
-                                root,
-                                "Please enter your password",
-                                SnackBarApp.Type.WARNING
-                        );
+                        String pwd = password == null ? "" : password.trim();
+                        if (pwd.isEmpty()) {
+                            SnackBarApp.INSTANCE.show(
+                                    root,
+                                    "Please enter your password",
+                                    SnackBarApp.Type.WARNING
+                            );
+                            return Unit.INSTANCE;
+                        }
+
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user == null || user.getEmail() == null) {
+                            SnackBarApp.INSTANCE.show(
+                                    root,
+                                    "No logged-in user.",
+                                    SnackBarApp.Type.ERROR
+                            );
+                            return Unit.INSTANCE;
+                        }
+
+                        AuthCredential credential =
+                                EmailAuthProvider.getCredential(user.getEmail(), pwd);
+
+                        user.reauthenticate(credential)
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        // Go to step 2 (new password screen)
+                                        showNewPasswordStep();
+                                    } else {
+                                        SnackBarApp.INSTANCE.show(
+                                                root,
+                                                "Re-authentication failed.",
+                                                SnackBarApp.Type.ERROR
+                                        );
+                                    }
+                                });
                         return Unit.INSTANCE;
                     }
-
-                    FirebaseUser user = mAuth.getCurrentUser();
-                    if (user == null || user.getEmail() == null) {
-                        SnackBarApp.INSTANCE.show(
-                                root,
-                                "No logged-in user.",
-                                SnackBarApp.Type.ERROR
-                        );
-                        return Unit.INSTANCE;
-                    }
-
-                    AuthCredential credential =
-                            EmailAuthProvider.getCredential(user.getEmail(), pwd);
-
-                    user.reauthenticate(credential)
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    // Go to step 2 (new password screen)
-                                    showNewPasswordStep();
-                                } else {
-                                    SnackBarApp.INSTANCE.show(
-                                            root,
-                                            "Re-authentication failed.",
-                                            SnackBarApp.Type.ERROR
-                                    );
-                                }
-                            });
-                    return Unit.INSTANCE;
                 }
-            }
         );
     }
 
-    /** Step 2: ask for new password (Compose validates length & confirm) and update in Firebase. */
+    /**
+     * Step 2: ask for new password (Compose validates length & confirm) and update in Firebase.
+     */
     private void showNewPasswordStep() {
         ProfileKt.bindNewPasswordContent(
                 composeView,

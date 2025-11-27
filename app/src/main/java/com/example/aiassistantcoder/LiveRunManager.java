@@ -14,16 +14,20 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 
 public class LiveRunManager {
 
     public interface Listener {
         void log(String msg);
+
         void onSessionReady(String wsUrl, String sessionId);
-        default void onStopped() {}
+
+        default void onStopped() {
+        }
+
         void onError(String msg);
     }
 
@@ -104,7 +108,9 @@ public class LiveRunManager {
     }
 
 
-    /** stop/cleanup remote container */
+    /**
+     * stop/cleanup remote container
+     */
     public void stopSession(@Nullable String sessionId) {
         if (sessionId == null || sessionId.isEmpty()) {
             return;
@@ -151,7 +157,11 @@ public class LiveRunManager {
     private boolean verifyFileExists(@NonNull String projectId,
                                      @NonNull String relPath) {
         try {
-            String url = baseUrl + "/projects/" + projectId + "/files?path=" + URLEncoder.encode(relPath, "UTF-8");
+            String encodedPath;
+            // Old overload: works on all API levels you support
+            encodedPath = URLEncoder.encode(relPath, StandardCharsets.UTF_8);
+
+            String url = baseUrl + "/projects/" + projectId + "/files?path=" + encodedPath;
             JSONObject obj = httpGetJsonObject(url);
             String c = obj.optString("content", null);
             if (c != null) {
@@ -163,6 +173,7 @@ public class LiveRunManager {
         }
         return false;
     }
+
 
     private JSONObject startSession(@NonNull String projectId,
                                     @NonNull String language,
@@ -195,7 +206,8 @@ public class LiveRunManager {
         InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
         String body = readAll(is);
         conn.disconnect();
-        if (code < 200 || code >= 300) throw new RuntimeException("GET " + urlStr + " -> " + code + ": " + body);
+        if (code < 200 || code >= 300)
+            throw new RuntimeException("GET " + urlStr + " -> " + code + ": " + body);
         return new JSONObject(body);
     }
 
@@ -218,7 +230,8 @@ public class LiveRunManager {
         InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
         String body = readAll(is);
         conn.disconnect();
-        if (code < 200 || code >= 300) throw new RuntimeException("POST " + urlStr + " -> " + code + ": " + body);
+        if (code < 200 || code >= 300)
+            throw new RuntimeException("POST " + urlStr + " -> " + code + ": " + body);
         return new JSONObject(body);
     }
 
@@ -241,7 +254,8 @@ public class LiveRunManager {
         InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
         String body = readAll(is);
         conn.disconnect();
-        if (code < 200 || code >= 300) throw new RuntimeException("PUT " + urlStr + " -> " + code + ": " + body);
+        if (code < 200 || code >= 300)
+            throw new RuntimeException("PUT " + urlStr + " -> " + code + ": " + body);
         return new JSONObject(body);
     }
 

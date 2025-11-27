@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -57,13 +56,13 @@ public class PhoneSignInDialog extends DialogFragment {
         mAuth = FirebaseAuth.getInstance();
 
         // ---- bind views ----
-        ccp           = v.findViewById(R.id.ccp);
-        phoneField    = v.findViewById(R.id.phone_field);
-        codeField     = v.findViewById(R.id.code_field);
-        sendCodeBtn   = v.findViewById(R.id.btn_send_code);
-        verifyBtn     = v.findViewById(R.id.btn_verify_code);
-        resendBtn     = v.findViewById(R.id.btn_resend_code);
-        closeBtn      = v.findViewById(R.id.close_button);
+        ccp = v.findViewById(R.id.ccp);
+        phoneField = v.findViewById(R.id.phone_field);
+        codeField = v.findViewById(R.id.code_field);
+        sendCodeBtn = v.findViewById(R.id.btn_send_code);
+        verifyBtn = v.findViewById(R.id.btn_verify_code);
+        resendBtn = v.findViewById(R.id.btn_resend_code);
+        closeBtn = v.findViewById(R.id.btn_close);
         countdownText = v.findViewById(R.id.tv_countdown);
 
         // Link CCP to phone input so it formats +E.164 automatically

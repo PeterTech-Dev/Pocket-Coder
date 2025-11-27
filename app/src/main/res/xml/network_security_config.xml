@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+
     <!-- Only for debug builds; lets user-installed certs work too -->
     <debug-overrides>
         <trust-anchors>
@@ -10,10 +11,11 @@
 
     <!-- Permit plaintext (HTTP) to your local dev hosts -->
     <domain-config cleartextTrafficPermitted="true">
-        <domain>10.0.2.2</domain>            <!-- Android emulator -> host machine -->
-        <domain>localhost</domain>
-        <domain>127.0.0.1</domain>
-        <!-- If you ever run on a real device, add your PC’s LAN IP here: -->
-        <!-- <domain>192.168.1.105</domain> -->
+        <domain includeSubdomains="false">10.0.2.2</domain>   <!-- Emulator -> host machine -->
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <!-- If you use a LAN IP on real device -->
+        <!-- <domain includeSubdomains="false">192.168.1.105</domain> -->
     </domain-config>
+
 </network-security-config>

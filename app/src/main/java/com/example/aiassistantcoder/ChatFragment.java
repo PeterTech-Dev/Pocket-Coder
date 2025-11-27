@@ -1,5 +1,6 @@
 package com.example.aiassistantcoder;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -15,7 +16,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -40,6 +40,7 @@ import com.google.gson.annotations.SerializedName;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -91,7 +92,8 @@ public class ChatFragment extends Fragment {
     private final ActivityResultLauncher<Intent> pickImage = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                if (result.getResultCode() == requireActivity().RESULT_OK && result.getData() != null) {
+                requireActivity();
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     selectedImageUri = result.getData().getData();
                     try {
                         selectedImageBitmap = MediaStore.Images.Media.getBitmap(requireContext().getContentResolver(), selectedImageUri);
@@ -272,12 +274,12 @@ public class ChatFragment extends Fragment {
                 Log.d(TAG, "CHAT_MODEL_TEXT (after extractTextFromCandidates): " + modelText);
 
                 // inside the background thread, after you got modelText
-                String aiCode     = "";
+                String aiCode = "";
                 String aiLanguage = "";
-                String aiRuntime  = "";
-                String aiNotes    = "";
+                String aiRuntime = "";
+                String aiNotes = "";
                 String entrypoint = "";
-                String display    = modelText;
+                String display = modelText;
 
 // NEW: a place to store all files for the editor
                 List<AiUpdateViewModel.ProjectFile> vmFiles = new ArrayList<>();
@@ -286,16 +288,19 @@ public class ChatFragment extends Fragment {
                     JsonObject obj = gson.fromJson(modelText, JsonObject.class);
                     if (obj != null) {
                         aiLanguage = safeString(obj, "language");
-                        aiRuntime  = safeString(obj, "runtime");
-                        aiNotes    = safeString(obj, "notes");
+                        aiRuntime = safeString(obj, "runtime");
+                        aiNotes = safeString(obj, "notes");
                         entrypoint = safeString(obj, "entrypoint");
 
                         StringBuilder sb = new StringBuilder();
 
-                        if (!aiLanguage.isEmpty()) sb.append("**Language:** ").append(aiLanguage).append("\n");
-                        if (!aiRuntime.isEmpty())  sb.append("**Runtime:** ").append(aiRuntime).append("\n");
-                        if (!entrypoint.isEmpty()) sb.append("**Entrypoint:** ").append(entrypoint).append("\n");
-                        if (!aiNotes.isEmpty())    sb.append("\n").append(aiNotes).append("\n\n");
+                        if (!aiLanguage.isEmpty())
+                            sb.append("**Language:** ").append(aiLanguage).append("\n");
+                        if (!aiRuntime.isEmpty())
+                            sb.append("**Runtime:** ").append(aiRuntime).append("\n");
+                        if (!entrypoint.isEmpty())
+                            sb.append("**Entrypoint:** ").append(entrypoint).append("\n");
+                        if (!aiNotes.isEmpty()) sb.append("\n").append(aiNotes).append("\n\n");
 
                         if (obj.has("files") && obj.get("files").isJsonArray()) {
                             JsonArray filesArr = obj.getAsJsonArray("files");
@@ -304,8 +309,8 @@ public class ChatFragment extends Fragment {
                                 if (!filesArr.get(i).isJsonObject()) continue;
                                 JsonObject fObj = filesArr.get(i).getAsJsonObject();
 
-                                String path    = safeString(fObj, "path");
-                                String fname   = safeString(fObj, "filename");
+                                String path = safeString(fObj, "path");
+                                String fname = safeString(fObj, "filename");
                                 String summary = safeString(fObj, "summary");
                                 String content = safeString(fObj, "content");
 
@@ -357,10 +362,10 @@ public class ChatFragment extends Fragment {
 
                 String finalEntrypoint = entrypoint;
                 String finalAiLanguage = aiLanguage;
-                String finalAiRuntime  = aiRuntime;
-                String finalAiNotes    = aiNotes;
-                String finalAiCode     = aiCode;
-                String finalDisplay    = display;
+                String finalAiRuntime = aiRuntime;
+                String finalAiNotes = aiNotes;
+                String finalAiCode = aiCode;
+                String finalDisplay = display;
 
                 requireActivity().runOnUiThread(() -> {
                     loadingIndicator.setVisibility(View.GONE);
@@ -402,8 +407,13 @@ public class ChatFragment extends Fragment {
                     if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                         ProjectRepository.getInstance().saveProjectToFirestore(currentProject,
                                 new ProjectRepository.ProjectSaveCallback() {
-                                    @Override public void onSaved(String projectId) {}
-                                    @Override public void onError(Exception e) {}
+                                    @Override
+                                    public void onSaved(String projectId) {
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                    }
                                 });
                     }
                 });
@@ -497,19 +507,29 @@ public class ChatFragment extends Fragment {
             int bracket = text.indexOf('[', i);
             int start = (brace == -1) ? bracket : (bracket == -1 ? brace : Math.min(brace, bracket));
 
-            if (start == -1) { out.append(text, i, n); break; }
+            if (start == -1) {
+                out.append(text, i, n);
+                break;
+            }
             out.append(text, i, start);
 
             int end = findMatchingJsonEnd(text, start);
-            if (end == -1) { out.append(text.substring(start)); break; }
+            if (end == -1) {
+                out.append(text.substring(start));
+                break;
+            }
 
             String candidate = text.substring(start, end + 1);
             String pretty = candidate;
-            try { pretty = prettifyJson(candidate); }
-            catch (Exception e) {
+            try {
+                pretty = prettifyJson(candidate);
+            } catch (Exception e) {
                 String fixed = trySanitizeJson(candidate);
-                try { if (fixed != null) pretty = prettifyJson(fixed); }
-                catch (Exception ignore) { pretty = candidate; }
+                try {
+                    if (fixed != null) pretty = prettifyJson(fixed);
+                } catch (Exception ignore) {
+                    pretty = candidate;
+                }
             }
 
             out.append("\n```json\n").append(pretty).append("\n```\n");
@@ -523,7 +543,10 @@ public class ChatFragment extends Fragment {
     }
 
     private int findMatchingJsonEnd(String text, int start) {
-        int depth = 0; boolean inString = false; char quote = 0; boolean esc = false;
+        int depth = 0;
+        boolean inString = false;
+        char quote = 0;
+        boolean esc = false;
         for (int i = start; i < text.length(); i++) {
             char c = text.charAt(i);
             if (inString) {
@@ -532,9 +555,16 @@ public class ChatFragment extends Fragment {
                 else if (c == quote) inString = false;
                 continue;
             }
-            if (c == '"' || c == '\'') { inString = true; quote = c; continue; }
+            if (c == '"' || c == '\'') {
+                inString = true;
+                quote = c;
+                continue;
+            }
             if (c == '{' || c == '[') depth++;
-            else if (c == '}' || c == ']') { depth--; if (depth == 0) return i; }
+            else if (c == '}' || c == ']') {
+                depth--;
+                if (depth == 0) return i;
+            }
         }
         return -1;
     }
@@ -676,18 +706,46 @@ public class ChatFragment extends Fragment {
         Integer maxOutputTokens;
     }
 
-    static class GenerateContentResponse { Candidate[] candidates; }
-    static class Candidate { Content content; @SerializedName("finishReason") String finishReason; }
-    static class Content { String role; List<Part> parts; }
-    static class Part { String text; @SerializedName("inline_data") InlineData inlineData; }
-    static class InlineData { @SerializedName("mime_type") String mimeType; String data; }
-
-    private static Content contentOf(String role, Part... parts) {
-        Content c = new Content(); c.role = role; c.parts = new ArrayList<>();
-        for (Part p : parts) c.parts.add(p); return c;
+    static class GenerateContentResponse {
+        Candidate[] candidates;
     }
 
-    private static Part partText(String text) { Part p = new Part(); p.text = text; return p; }
+    static class Candidate {
+        Content content;
+        @SerializedName("finishReason")
+        String finishReason;
+    }
+
+    static class Content {
+        String role;
+        List<Part> parts;
+    }
+
+    static class Part {
+        String text;
+        @SerializedName("inline_data")
+        InlineData inlineData;
+    }
+
+    static class InlineData {
+        @SerializedName("mime_type")
+        String mimeType;
+        String data;
+    }
+
+    private static Content contentOf(String role, Part... parts) {
+        Content c = new Content();
+        c.role = role;
+        c.parts = new ArrayList<>();
+        Collections.addAll(c.parts, parts);
+        return c;
+    }
+
+    private static Part partText(String text) {
+        Part p = new Part();
+        p.text = text;
+        return p;
+    }
 
     private static Part partInlineImage(Bitmap bmp, String mimeType) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();

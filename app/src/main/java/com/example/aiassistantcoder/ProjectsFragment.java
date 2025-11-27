@@ -1,18 +1,17 @@
 package com.example.aiassistantcoder;
 
 import android.app.AlertDialog;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.graphics.Canvas;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -121,7 +120,8 @@ public class ProjectsFragment extends Fragment implements ProjectRepository.Proj
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) { }
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
     }
 
@@ -233,10 +233,7 @@ public class ProjectsFragment extends Fragment implements ProjectRepository.Proj
                                             boolean isCurrentlyActive) {
 
                         if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE
-                                && viewHolder instanceof ProjectAdapter.ProjectViewHolder) {
-
-                            ProjectAdapter.ProjectViewHolder holder =
-                                    (ProjectAdapter.ProjectViewHolder) viewHolder;
+                                && viewHolder instanceof ProjectAdapter.ProjectViewHolder holder) {
 
                             View foreground = holder.foreground;
                             View bgDelete = holder.bgDelete;
@@ -290,9 +287,7 @@ public class ProjectsFragment extends Fragment implements ProjectRepository.Proj
                                           @NonNull RecyclerView.ViewHolder viewHolder) {
                         super.clearView(recyclerView, viewHolder);
                         // Reset translation when gesture ends
-                        if (viewHolder instanceof ProjectAdapter.ProjectViewHolder) {
-                            ProjectAdapter.ProjectViewHolder holder =
-                                    (ProjectAdapter.ProjectViewHolder) viewHolder;
+                        if (viewHolder instanceof ProjectAdapter.ProjectViewHolder holder) {
                             holder.foreground.setTranslationX(0f);
                         }
                     }

@@ -17,7 +17,7 @@ if (localPropsFile.exists()) {
 
 android {
     namespace 'com.example.aiassistantcoder'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.example.aiassistantcoder"
@@ -68,53 +68,52 @@ dependencies {
     implementation libs.constraintlayout
 
     //UI
-    implementation "com.google.android.material:material:1.12.0"
-    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation libs.material.v1130
+    implementation libs.appcompat.v171
     implementation libs.foundation
     implementation libs.foundation.layout
 
     // --- Jetpack Compose ---
-    def composeBom = platform('androidx.compose:compose-bom:2025.10.01')
+    def composeBom = libs.androidx.compose.bom
     implementation composeBom
     androidTestImplementation composeBom
 
-    implementation "androidx.compose.ui:ui"
-    implementation "androidx.compose.material3:material3"
-    implementation "androidx.compose.foundation:foundation"
-    implementation "androidx.compose.material:material-icons-extended:1.6.1"
-    implementation "androidx.compose.runtime:runtime-livedata"
+    implementation libs.ui
+    implementation libs.material3
+    implementation libs.androidx.foundation
+    implementation libs.androidx.material.icons.extended
+    implementation libs.androidx.runtime.livedata
 
-    implementation "androidx.compose.ui:ui-tooling-preview"
-    debugImplementation "androidx.compose.ui:ui-tooling"
+    implementation libs.androidx.ui.tooling.preview
+    debugImplementation libs.androidx.ui.tooling
 
-    debugImplementation "androidx.compose.ui:ui-test-manifest"
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4"
+    debugImplementation libs.androidx.ui.test.manifest
 
     // Core utils
-    implementation "com.squareup.okhttp3:okhttp:4.12.0"
-    implementation "com.google.code.gson:gson:2.10.1"
-    implementation "com.google.guava:guava:32.0.1-android"
+    implementation libs.okhttp
+    implementation libs.gson
+    implementation libs.guava
 
     // AndroidX / Arch
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0"
-    implementation "androidx.recyclerview:recyclerview:1.3.2"
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.recyclerview
 
     // Markdown
-    implementation "io.noties.markwon:core:4.6.2"
-    implementation "io.noties.markwon:image:4.6.2"
+    implementation libs.core
+    implementation libs.image
 
     // Firebase (BOM controls versions)
-    implementation platform("com.google.firebase:firebase-bom:33.+")
-    implementation "com.google.firebase:firebase-auth"
-    implementation "com.google.firebase:firebase-firestore"
-    implementation 'com.google.android.gms:play-services-auth:21.2.0'
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.auth
+    implementation libs.firebase.firestore
+    implementation libs.play.services.auth
 
     // Phone number handling
-    implementation 'com.googlecode.libphonenumber:libphonenumber:8.13.38'
-    implementation 'com.hbb20:ccp:2.7.3'
+    implementation libs.libphonenumber
+    implementation libs.ccp
 
     // Images
-    implementation "com.github.bumptech.glide:glide:4.12.0"
+    implementation libs.glide
     kapt "com.github.bumptech.glide:compiler:4.12.0"
 
     // Code editor (your existing)
@@ -123,13 +122,8 @@ dependencies {
     implementation 'io.github.rosemoe:language-textmate'
 
     // Desugaring
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
+    coreLibraryDesugaring libs.desugar.jdk.libs
 
     // Misc
-    implementation 'org.jsoup:jsoup:1.17.2'
-
-    // Tests
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
+    implementation libs.jsoup
 }

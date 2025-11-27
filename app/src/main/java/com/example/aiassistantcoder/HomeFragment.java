@@ -1,5 +1,7 @@
 package com.example.aiassistantcoder;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -15,15 +17,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import androidx.compose.ui.platform.ComposeView;
+import androidx.fragment.app.Fragment;
 
 import com.example.aiassistantcoder.ui.SnackBarApp;
 import com.google.android.material.textfield.TextInputLayout;
@@ -44,8 +44,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
-import static android.app.Activity.RESULT_OK;
 
 public class HomeFragment extends Fragment {
 
@@ -266,18 +264,18 @@ public class HomeFragment extends Fragment {
                 // debugger
                 Log.d(TAG, "submitToGemini: modelText (first part text) -> " + modelText);
 
-                String aiCode    = "";
+                String aiCode = "";
                 String aiLanguage = "";
-                String aiRuntime  = "";
-                String aiNotes    = "";
-                String display    = modelText;   // fallback
+                String aiRuntime = "";
+                String aiNotes = "";
+                String display = modelText;   // fallback
 
                 try {
                     JsonObject obj = gson.fromJson(modelText, JsonObject.class);
                     if (obj != null) {
                         aiLanguage = safeString(obj, "language");
-                        aiRuntime  = safeString(obj, "runtime");
-                        aiNotes    = safeString(obj, "notes");
+                        aiRuntime = safeString(obj, "runtime");
+                        aiNotes = safeString(obj, "notes");
 
                         StringBuilder sb = new StringBuilder();
 
@@ -302,8 +300,8 @@ public class HomeFragment extends Fragment {
                                 if (!filesArr.get(i).isJsonObject()) continue;
                                 JsonObject fObj = filesArr.get(i).getAsJsonObject();
 
-                                String path    = safeString(fObj, "path");
-                                String fname   = safeString(fObj, "filename");
+                                String path = safeString(fObj, "path");
+                                String fname = safeString(fObj, "filename");
                                 String summary = safeString(fObj, "summary");
                                 String content = safeString(fObj, "content");
 
@@ -351,11 +349,11 @@ public class HomeFragment extends Fragment {
 
                 if (getActivity() == null) return;
                 String query = searchBar.getText().toString().trim();
-                String finalAiCode     = aiCode;
+                String finalAiCode = aiCode;
                 String finalAiLanguage = aiLanguage;
-                String finalAiRuntime  = aiRuntime;
-                String finalAiNotes    = aiNotes;
-                String finalDisplay    = display;
+                String finalAiRuntime = aiRuntime;
+                String finalAiNotes = aiNotes;
+                String finalDisplay = display;
 
                 getActivity().runOnUiThread(() -> {
                     loadingIndicator.setVisibility(View.GONE);
@@ -372,7 +370,8 @@ public class HomeFragment extends Fragment {
                         ProjectRepository.getInstance().saveProjectToFirestore(
                                 newProject,
                                 new ProjectRepository.ProjectSaveCallback() {
-                                    @Override public void onSaved(String projectId) {
+                                    @Override
+                                    public void onSaved(String projectId) {
                                         Log.d(TAG, "submitToGemini: project saved, id=" + projectId);
                                         intent.putExtra("projectTitle", newProject.getTitle());
                                         pushAiExtras(intent, finalAiCode, finalAiLanguage, finalAiRuntime, finalAiNotes);
@@ -382,11 +381,12 @@ public class HomeFragment extends Fragment {
                                         startActivity(intent);
                                     }
 
-                                    @Override public void onError(Exception e) {
+                                    @Override
+                                    public void onError(Exception e) {
                                         Log.e(TAG, "submitToGemini: project save error", e);
                                         SnackBarApp.INSTANCE.show(
                                                 requireActivity().findViewById(android.R.id.content),
-                                                "Error saving project: " +e.getMessage(),
+                                                "Error saving project: " + e.getMessage(),
                                                 SnackBarApp.Type.WARNING
                                         );
                                     }

@@ -1,8 +1,8 @@
 package com.example.aiassistantcoder;
 
 import android.graphics.Color;
-import android.view.ViewGroup;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -22,9 +22,9 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.VH> {
         void onFileDelete(OpenFile file);
     }
 
-    private List<OpenFile> files;
-    private OnFileClick clickListener;
-    private OnFileDelete deleteListener;
+    private final List<OpenFile> files;
+    private final OnFileClick clickListener;
+    private final OnFileDelete deleteListener;
 
     public FilesAdapter(List<OpenFile> files,
                         OnFileClick clickListener,
@@ -97,6 +97,7 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.VH> {
     static class VH extends RecyclerView.ViewHolder {
         TextView name;
         ImageButton trash;
+
         VH(@NonNull View itemView, TextView name, ImageButton trash) {
             super(itemView);
             this.name = name;

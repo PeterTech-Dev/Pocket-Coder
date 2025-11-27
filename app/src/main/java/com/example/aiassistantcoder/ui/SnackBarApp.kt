@@ -53,7 +53,8 @@ object SnackBarApp {
 
         // Set icon & force white tint to match screenshot
         iconView.setImageResource(iconRes)
-        iconView.imageTintList = ColorStateList.valueOf(res.getColor(android.R.color.white, ctx.theme))
+        iconView.imageTintList =
+            ColorStateList.valueOf(res.getColor(android.R.color.white, ctx.theme))
         textView.setTextColor(res.getColor(android.R.color.white, ctx.theme))
 
         // Remove default snackbar background & padding

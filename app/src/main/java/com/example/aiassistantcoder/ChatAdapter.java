@@ -3,6 +3,7 @@ package com.example.aiassistantcoder;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
@@ -16,7 +17,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.graphics.Typeface;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,15 +30,11 @@ import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import android.graphics.Typeface;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Collections;
-import java.util.Comparator;
-
 
 import io.noties.markwon.Markwon;
 import io.noties.markwon.image.ImagesPlugin;
@@ -243,7 +239,9 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         // RUN INFO helpers
         // --------------------------------------------------
 
-        /** Parsed metadata from pretty-for-chat text. */
+        /**
+         * Parsed metadata from pretty-for-chat text.
+         */
         static class RunInfo {
             String language;
             String runtime;
@@ -252,7 +250,9 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             String body; // markdown without the meta lines
         }
 
-        /** Parse Language/Runtime/Entrypoint/File lines and return remaining body. */
+        /**
+         * Parse Language/Runtime/Entrypoint/File lines and return remaining body.
+         */
         private RunInfo parseRunInfo(String input) {
             if (input == null || input.isEmpty()) return null;
 
@@ -687,18 +687,18 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             String p = path == null ? "" : path.trim();
             String f = filename == null ? "" : filename.trim();
 
-            if (p.equals(".") || p.equals("./") || p.equals(".//")) {
-                p = "";
-            }
-            while (p.startsWith("./")) p = p.substring(2);
-            while (p.startsWith("/")) p = p.substring(1);
-            while (f.startsWith("./")) f = f.substring(2);
-            while (f.startsWith("/")) f = f.substring(1);
+            // Remove leading ./ or / (repeated if needed)
+            p = p.replaceAll("^([./]+)", "");
+            f = f.replaceAll("^([./]+)", "");
+
+            // Replace any double/multi slashes with a single slash
+            p = p.replaceAll("/+", "/");
+            f = f.replaceAll("/+", "/");
 
             if (p.isEmpty()) {
                 return f;
             }
-            return p + "/" + f;
+            return p + "/" + f;  // Always exactly one slash between
         }
 
         static class FileNode {

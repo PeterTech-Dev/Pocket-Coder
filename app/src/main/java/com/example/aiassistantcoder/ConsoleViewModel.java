@@ -11,9 +11,17 @@ public class ConsoleViewModel extends ViewModel {
     // Outgoing commands entered in console
     private final MutableLiveData<String> commandOut = new MutableLiveData<>();
 
-    public LiveData<String> getLogs() { return logs; }
-    public LiveData<String> getPreviewUrl() { return previewUrl; }
-    public LiveData<String> getCommandOut() { return commandOut; }
+    public LiveData<String> getLogs() {
+        return logs;
+    }
+
+    public LiveData<String> getPreviewUrl() {
+        return previewUrl;
+    }
+
+    public LiveData<String> getCommandOut() {
+        return commandOut;
+    }
 
     public synchronized void append(String chunk) {
         String prev = logs.getValue();
@@ -24,7 +32,9 @@ public class ConsoleViewModel extends ViewModel {
         previewUrl.postValue(url);
     }
 
-    /** Emit a command typed by the user */
+    /**
+     * Emit a command typed by the user
+     */
     public void sendCommand(String cmd) {
         if (cmd != null && !cmd.trim().isEmpty()) {
             commandOut.postValue(cmd);

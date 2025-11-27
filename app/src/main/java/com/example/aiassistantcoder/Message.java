@@ -21,18 +21,44 @@ public class Message implements Serializable {
     }
 
     // ---- getters ----
-    public String getText() { return text; }
-    public String getRole() { return role; }
-    public String getImageUri() { return imageUri; }
+    public String getText() {
+        return text;
+    }
 
-    public String getCode() { return code; }
-    public String getFilePath() { return filePath; }
+    public String getRole() {
+        return role;
+    }
+
+    public String getImageUri() {
+        return imageUri;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
 
     // ---- setters ----
-    public void setText(String text) { this.text = text; }
-    public void setRole(String role) { this.role = role; }
-    public void setImageUri(String imageUri) { this.imageUri = imageUri; }
+    public void setText(String text) {
+        this.text = text;
+    }
 
-    public void setCode(String code) { this.code = code; }
-    public void setFilePath(String filePath) { this.filePath = filePath; }
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public void setImageUri(String imageUri) {
+        this.imageUri = imageUri;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
 }

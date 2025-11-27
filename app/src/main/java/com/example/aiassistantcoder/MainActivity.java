@@ -8,15 +8,13 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.compose.ui.platform.ComposeView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.Fragment;
-import androidx.compose.ui.platform.ComposeView;
-import com.example.aiassistantcoder.ui.NeonBottomBarKt;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.aiassistantcoder.ui.NeonBottomBarKt;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.firestore.FirebaseFirestore;

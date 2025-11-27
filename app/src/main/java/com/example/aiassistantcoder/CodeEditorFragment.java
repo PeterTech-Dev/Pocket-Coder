@@ -1,26 +1,26 @@
 package com.example.aiassistantcoder;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.widget.Toast;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewParent;
-import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.LinearLayout;
-import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -28,11 +28,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.aiassistantcoder.ui.SnackBarApp;
-import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 
+import org.eclipse.tm4e.core.registry.IThemeSource;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -47,29 +48,29 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.LinkedHashMap;
 
-import io.github.rosemoe.sora.widget.CodeEditor;
 import io.github.rosemoe.sora.event.ContentChangeEvent;
 import io.github.rosemoe.sora.event.SubscriptionReceipt;
-import io.github.rosemoe.sora.langs.textmate.TextMateLanguage;
 import io.github.rosemoe.sora.langs.textmate.TextMateColorScheme;
+import io.github.rosemoe.sora.langs.textmate.TextMateLanguage;
 import io.github.rosemoe.sora.langs.textmate.registry.FileProviderRegistry;
 import io.github.rosemoe.sora.langs.textmate.registry.GrammarRegistry;
 import io.github.rosemoe.sora.langs.textmate.registry.ThemeRegistry;
-import io.github.rosemoe.sora.langs.textmate.registry.provider.AssetsFileResolver;
 import io.github.rosemoe.sora.langs.textmate.registry.model.ThemeModel;
-import org.eclipse.tm4e.core.registry.IThemeSource;
-
+import io.github.rosemoe.sora.langs.textmate.registry.provider.AssetsFileResolver;
+import io.github.rosemoe.sora.widget.CodeEditor;
 import okhttp3.OkHttpClient;
-import okhttp3.WebSocket;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
 
@@ -108,16 +109,19 @@ public class CodeEditorFragment extends Fragment {
     private final List<PendingFileDiff> pendingFileDiffs = new ArrayList<>();
     private @Nullable String currentDiffFileId = null;
     private @Nullable TextView diffHeaderView = null;
+
     private static final class PendingFileDiff {
         final String fileId;
         final String newContent;
         final List<DiffLine> diff;
+
         PendingFileDiff(String fileId, String newContent, List<DiffLine> diff) {
             this.fileId = fileId;
             this.newContent = newContent;
             this.diff = diff;
         }
     }
+
     private @Nullable Runnable onAcceptAction;
     private @Nullable String queuedNewCode;
 
@@ -159,10 +163,13 @@ public class CodeEditorFragment extends Fragment {
                 ProjectRepository.getInstance().saveProjectToFirestore(
                         currentProject,
                         new ProjectRepository.ProjectSaveCallback() {
-                            @Override public void onSaved(String projectId) {
+                            @Override
+                            public void onSaved(String projectId) {
                                 printToConsole("(saved) ✔\n");
                             }
-                            @Override public void onError(Exception e) {
+
+                            @Override
+                            public void onError(Exception e) {
                                 printToConsole("Save error: " + e.getMessage() + "\n");
                             }
                         });
@@ -190,7 +197,8 @@ public class CodeEditorFragment extends Fragment {
     private boolean showDiffs = false;
 
     // Backend selection
-    private enum Backend { LIVE, HTML }
+    private enum Backend {LIVE, HTML}
+
     private Backend currentBackend = Backend.LIVE;
 
     // Back-compat
@@ -200,8 +208,11 @@ public class CodeEditorFragment extends Fragment {
     private LiveRunManager liveRunManager;
 
     // For asking the Activity to switch tabs to Console
-    public interface PagerNav { void goToConsoleTab(); }
+    public interface PagerNav {
+        void goToConsoleTab();
+    }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -235,9 +246,7 @@ public class CodeEditorFragment extends Fragment {
                         float dx = curX - twoFingerStartX;
 
                         if (Math.abs(dx) > TWO_FINGER_SWIPE_THRESHOLD) {
-                            if (getActivity() instanceof CodeEditorFragment.PagerNav) {
-                                CodeEditorFragment.PagerNav nav =
-                                        (CodeEditorFragment.PagerNav) getActivity();
+                            if (getActivity() instanceof PagerNav nav) {
                                 if (dx < 0) {
                                     // 2-finger swipe LEFT → console
                                     nav.goToConsoleTab();
@@ -265,12 +274,12 @@ public class CodeEditorFragment extends Fragment {
             return false;
         });
 
-        btnRun     = v.findViewById(R.id.btn_run);
-        progress   = v.findViewById(R.id.progress);
+        btnRun = v.findViewById(R.id.btn_run);
+        progress = v.findViewById(R.id.progress);
         initTextMateIfNeeded();
         applyTextMateLanguageFromAi();
 
-        tabLayout  = v.findViewById(R.id.tab_layout);
+        tabLayout = v.findViewById(R.id.tab_layout);
         filesPanel = v.findViewById(R.id.files_panel);
         filesListContainer = v.findViewById(R.id.files_list_container);
 
@@ -295,7 +304,7 @@ public class CodeEditorFragment extends Fragment {
         }
 
         if (btnAddFile != null) {
-            btnAddFile.setOnClickListener(view -> showCreateFileDialog());
+            btnAddFile.setOnClickListener(view -> showCreateItemChooser(null)); // root
         }
 
         if (btnCloseTab != null) {
@@ -306,21 +315,21 @@ public class CodeEditorFragment extends Fragment {
             tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
                 @Override
                 public void onTabSelected(TabLayout.Tab tab) {
-                    if (tab.getTag() instanceof OpenFile) {
-                        OpenFile f = (OpenFile) tab.getTag();
+                    if (tab.getTag() instanceof OpenFile f) {
                         if (codeEditor != null) codeEditor.setText(f.content);
                     }
                 }
 
                 @Override
                 public void onTabUnselected(TabLayout.Tab tab) {
-                    if (tab.getTag() instanceof OpenFile) {
-                        OpenFile f = (OpenFile) tab.getTag();
+                    if (tab.getTag() instanceof OpenFile f) {
                         f.content = getCode();
                     }
                 }
 
-                @Override public void onTabReselected(TabLayout.Tab tab) {}
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                }
             });
         }
 
@@ -359,16 +368,18 @@ public class CodeEditorFragment extends Fragment {
         aiBus.getUpdates().observe(getViewLifecycleOwner(), update -> {
             if (update == null) return;
 
-            aiLang       = update.language;
-            aiRuntime    = update.runtime;
+            aiLang = update.language;
+            aiRuntime = update.runtime;
             aiRunnerHint = update.notes;
             applyTextMateLanguageFromAi();
 
             String meta = "";
             if (aiLang != null && !aiLang.isEmpty()) meta += aiLang;
-            if (aiRuntime != null && !aiRuntime.isEmpty()) meta += (meta.isEmpty() ? "" : " ") + "(" + aiRuntime + ")";
+            if (aiRuntime != null && !aiRuntime.isEmpty())
+                meta += (meta.isEmpty() ? "" : " ") + "(" + aiRuntime + ")";
             if (!meta.isEmpty()) printToConsole("Detected: " + meta + "\n");
-            if (aiRunnerHint != null && !aiRunnerHint.isEmpty()) printToConsole("// Notes: " + aiRunnerHint + "\n");
+            if (aiRunnerHint != null && !aiRunnerHint.isEmpty())
+                printToConsole("// Notes: " + aiRunnerHint + "\n");
 
             boolean showDiff = Prefs.showDiffs(requireContext());
             applyAiCode(update.code, showDiff);
@@ -444,7 +455,6 @@ public class CodeEditorFragment extends Fragment {
             }
 
 
-
             if (filesListContainer != null) {
                 renderFilesList(filesListContainer);
             }
@@ -501,13 +511,15 @@ public class CodeEditorFragment extends Fragment {
                     saveHandler.postDelayed(saveRunnable, SAVE_DEBOUNCE_MS);
                 });
 
-        main.post(() -> { if (aiBus != null) aiBus.publishEditorCode(getCode()); });
+        main.post(() -> {
+            if (aiBus != null) aiBus.publishEditorCode(getCode());
+        });
 
         // args from parent
         Bundle args = getArguments();
         if (args != null) {
-            aiLang       = args.getString("ai_language");
-            aiRuntime    = args.getString("ai_runtime");
+            aiLang = args.getString("ai_language");
+            aiRuntime = args.getString("ai_runtime");
             aiRunnerHint = args.getString("ai_notes");
             String projectJson = args.getString("ai_project_json");
             String aiCode = args.getString("ai_code");
@@ -517,7 +529,8 @@ public class CodeEditorFragment extends Fragment {
             ingestAiProjectJson(projectJson);
 
             String liveOverride = args.getString("live_base_url");
-            if (liveOverride != null && !liveOverride.trim().isEmpty()) liveBaseUrl = liveOverride.trim();
+            if (liveOverride != null && !liveOverride.trim().isEmpty())
+                liveBaseUrl = liveOverride.trim();
         }
 
         if ((aiLang != null && !aiLang.isEmpty()) || (aiRuntime != null && !aiRuntime.isEmpty())) {
@@ -569,7 +582,8 @@ public class CodeEditorFragment extends Fragment {
         if (contentSub != null) {
             try {
                 contentSub.unsubscribe();
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
             contentSub = null;
         }
         stopLiveSession("fragment-destroyed");
@@ -594,8 +608,8 @@ public class CodeEditorFragment extends Fragment {
                 org.json.JSONArray arr = root.getJSONArray("files");
                 for (int i = 0; i < arr.length(); i++) {
                     org.json.JSONObject f = arr.getJSONObject(i);
-                    String path    = f.optString("path", "");
-                    String fname   = f.optString("filename", "");
+                    String path = f.optString("path", "");
+                    String fname = f.optString("filename", "");
                     String content = f.optString("content", "");
 
                     String id;
@@ -632,8 +646,6 @@ public class CodeEditorFragment extends Fragment {
         }
     }
 
-
-    // ==================== FILE PANEL / TABS ====================
     private void showFilesPanel() {
         if (filesPanel != null) filesPanel.setVisibility(View.VISIBLE);
     }
@@ -682,8 +694,7 @@ public class CodeEditorFragment extends Fragment {
             TabLayout.Tab t = tabLayout.getTabAt(i);
             if (t == null) continue;
             Object tag = t.getTag();
-            if (tag instanceof OpenFile) {
-                OpenFile f = (OpenFile) tag;
+            if (tag instanceof OpenFile f) {
                 if (fileId.equals(f.id)) {
                     t.select();
                     return;
@@ -960,7 +971,11 @@ public class CodeEditorFragment extends Fragment {
     static final class DiffLine {
         final char type;
         final String text;
-        DiffLine(char t, String s){ type=t; text=s; }
+
+        DiffLine(char t, String s) {
+            type = t;
+            text = s;
+        }
     }
 
     static final class DiffUtilLite {
@@ -968,44 +983,77 @@ public class CodeEditorFragment extends Fragment {
             String[] A = a.split("\n", -1);
             String[] B = b.split("\n", -1);
             int n = A.length, m = B.length;
-            int[][] dp = new int[n+1][m+1];
-            for (int i=n-1;i>=0;i--) for (int j=m-1;j>=0;j--)
-                dp[i][j] = A[i].equals(B[j]) ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j], dp[i][j+1]);
+            int[][] dp = new int[n + 1][m + 1];
+            for (int i = n - 1; i >= 0; i--)
+                for (int j = m - 1; j >= 0; j--)
+                    dp[i][j] = A[i].equals(B[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
 
             List<DiffLine> out = new ArrayList<>();
-            int i=0,j=0;
-            while(i<n && j<m){
-                if (A[i].equals(B[j])) { out.add(new DiffLine(' ', A[i])); i++; j++; }
-                else if (dp[i+1][j] >= dp[i][j+1]) { out.add(new DiffLine('-', A[i++])); }
-                else { out.add(new DiffLine('+', B[j++])); }
+            int i = 0, j = 0;
+            while (i < n && j < m) {
+                if (A[i].equals(B[j])) {
+                    out.add(new DiffLine(' ', A[i]));
+                    i++;
+                    j++;
+                } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+                    out.add(new DiffLine('-', A[i++]));
+                } else {
+                    out.add(new DiffLine('+', B[j++]));
+                }
             }
-            while(i<n) out.add(new DiffLine('-', A[i++]));
-            while(j<m) out.add(new DiffLine('+', B[j++]));
+            while (i < n) out.add(new DiffLine('-', A[i++]));
+            while (j < m) out.add(new DiffLine('+', B[j++]));
             return out;
         }
     }
 
     static final class DiffAdapter extends RecyclerView.Adapter<DiffVH> {
         private final List<DiffLine> lines;
-        DiffAdapter(List<DiffLine> l){ lines = l; }
-        @NonNull @Override public DiffVH onCreateViewHolder(@NonNull ViewGroup p, int v){
+
+        DiffAdapter(List<DiffLine> l) {
+            lines = l;
+        }
+
+        @NonNull
+        @Override
+        public DiffVH onCreateViewHolder(@NonNull ViewGroup p, int v) {
             View row = LayoutInflater.from(p.getContext())
                     .inflate(R.layout.item_diff_line, p, false);
             return new DiffVH(row);
         }
-        @Override public void onBindViewHolder(@NonNull DiffVH h, int i){ h.bind(lines.get(i)); }
-        @Override public int getItemCount(){ return lines.size(); }
+
+        @Override
+        public void onBindViewHolder(@NonNull DiffVH h, int i) {
+            h.bind(lines.get(i));
+        }
+
+        @Override
+        public int getItemCount() {
+            return lines.size();
+        }
     }
 
     static final class DiffVH extends RecyclerView.ViewHolder {
         private final TextView t;
-        DiffVH(View v){ super(v); t = v.findViewById(R.id.diff_line_text); }
-        void bind(DiffLine l){
-            t.setText((l.type==' ' ? "  " : (l.type+" ")) + l.text);
+
+        DiffVH(View v) {
+            super(v);
+            t = v.findViewById(R.id.diff_line_text);
+        }
+
+        void bind(DiffLine l) {
+            t.setText((l.type == ' ' ? "  " : (l.type + " ")) + l.text);
             int bg, fg;
-            if (l.type=='+'){ bg=0x1928A745; fg=0xFF28A745; }
-            else if (l.type=='-'){ bg=0x19D32F2F; fg=0xFFD32F2F; }
-            else { bg=0x00000000; fg=0xFFB0B0B0; }
+            if (l.type == '+') {
+                bg = 0x1928A745;
+                fg = 0xFF28A745;
+            } else if (l.type == '-') {
+                bg = 0x19D32F2F;
+                fg = 0xFFD32F2F;
+            } else {
+                bg = 0x00000000;
+                fg = 0xFFB0B0B0;
+            }
             t.setBackgroundColor(bg);
             t.setTextColor(fg);
         }
@@ -1021,14 +1069,17 @@ public class CodeEditorFragment extends Fragment {
         saveHandler.postDelayed(saveRunnable, SAVE_DEBOUNCE_MS);
     }
 
-    @NonNull public String getCode() {
+    @NonNull
+    public String getCode() {
         return codeEditor != null && codeEditor.getText() != null
                 ? codeEditor.getText().toString()
                 : (pendingCode != null ? pendingCode : "");
     }
 
     public void setAiHints(@Nullable String language, @Nullable String runtime, @Nullable String notes) {
-        this.aiLang = language; this.aiRuntime = runtime; this.aiRunnerHint = notes;
+        this.aiLang = language;
+        this.aiRuntime = runtime;
+        this.aiRunnerHint = notes;
     }
 
     // ---------- Backend selection ----------
@@ -1195,7 +1246,8 @@ public class CodeEditorFragment extends Fragment {
             if (liveSocket != null) {
                 liveSocket.close(1000, reason == null ? "closed" : reason);
             }
-        } catch (Throwable ignore) {}
+        } catch (Throwable ignore) {
+        }
         liveSocket = null;
 
         initLiveManagerIfNeeded();
@@ -1212,7 +1264,8 @@ public class CodeEditorFragment extends Fragment {
                 o.put("path", f.id != null ? f.id : f.name);
                 o.put("content", f.content != null ? f.content : "");
                 arr.put(o);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return arr;
     }
@@ -1292,9 +1345,30 @@ public class CodeEditorFragment extends Fragment {
         }
     }
 
+// ==================== FILE SYSTEM / FILE TREE ====================
 
+    // ---- File tree model for files panel ----
+    private static class FileNode {
+        final String name;
+        final boolean isFile;
+        final String fullPath;              // e.g. "src/main.py"
+        final List<FileNode> children = new ArrayList<>();
+
+        FileNode(@NonNull String name, boolean isFile, @NonNull String fullPath) {
+            this.name = name;
+            this.isFile = isFile;
+            this.fullPath = fullPath;
+        }
+    }
+
+    // Folder expansion state: "path" -> expanded?
+    private final Map<String, Boolean> folderExpansion = new HashMap<>();
+    private FileNode fileTreeRoot = new FileNode("", false, "");
+
+    // ---------------------- Tabs ----------------------
     private void closeCurrentTab() {
         if (tabLayout == null) return;
+
         int idx = tabLayout.getSelectedTabPosition();
         if (idx == -1) return;
 
@@ -1302,8 +1376,7 @@ public class CodeEditorFragment extends Fragment {
         if (tab == null) return;
 
         Object tag = tab.getTag();
-        if (tag instanceof OpenFile) {
-            OpenFile f = (OpenFile) tag;
+        if (tag instanceof OpenFile f) {
             openTabs.remove(f.id);
         }
 
@@ -1320,83 +1393,347 @@ public class CodeEditorFragment extends Fragment {
                 }
             }
         } else {
-            if (codeEditor != null) codeEditor.setText("");
+            if (codeEditor != null) {
+                codeEditor.setText("");
+            }
         }
     }
 
+    // ---------------------- Tree render entrypoint ----------------------
     private void renderFilesList(@NonNull LinearLayout container) {
-        int textColor = ContextCompat.getColor(getContext(), R.color.colorOnSurface);
-        int iconColor = ContextCompat.getColor(getContext(), R.color.colorOnSurface);
+        if (getContext() == null) return;
+
+        // Build tree from current files
+        rebuildFileTree();
+
         container.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(container.getContext());
 
-        for (OpenFile file : availableFiles) {
-            LinearLayout row = new LinearLayout(container.getContext());
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setPadding(24, 16, 16, 16);
-            row.setLayoutParams(new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            ));
+        for (FileNode child : fileTreeRoot.children) {
+            renderFileNodeRow(container, inflater, child, 0);
+        }
+    }
 
-            TextView name = new TextView(container.getContext());
-            name.setText(file.name);
-            name.setTextColor(textColor);
-            name.setLayoutParams(new LinearLayout.LayoutParams(
-                    0,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    1f
-            ));
+    // ---------------------- Build tree from availableFiles ----------------------
+    private void rebuildFileTree() {
+        fileTreeRoot = new FileNode("", false, "");
 
-            ImageButton trash = new ImageButton(container.getContext());
-            trash.setImageResource(android.R.drawable.ic_menu_delete);
-            trash.setBackgroundColor(0x00000000);
-            trash.setColorFilter(iconColor);
-            int p = (int) (8 * getResources().getDisplayMetrics().density);
-            trash.setPadding(p, p, p, p);
+        for (OpenFile f : availableFiles) {
+            if (f.id == null || f.id.trim().isEmpty()) continue;
 
-            row.setOnClickListener(v -> {
-                openOrSelectFile(file);
-                hideFilesPanel();
-            });
+            String normPath = normalizePath(f.id);
+            String[] parts = normPath.split("/");
 
-            trash.setOnClickListener(v -> {
+            FileNode current = fileTreeRoot;
+            StringBuilder pathBuilder = new StringBuilder();
+
+            for (int i = 0; i < parts.length; i++) {
+                String part = parts[i];
+                if (part.isEmpty()) continue;
+
+                boolean isFile = (i == parts.length - 1);
+
+                if (pathBuilder.length() > 0) {
+                    pathBuilder.append("/");
+                }
+                pathBuilder.append(part);
+                String fullPath = pathBuilder.toString();
+
+                FileNode child = null;
+                for (FileNode c : current.children) {
+                    if (c.name.equals(part) && c.isFile == isFile) {
+                        child = c;
+                        break;
+                    }
+                }
+
+                if (child == null) {
+                    child = new FileNode(part, isFile, fullPath);
+                    current.children.add(child);
+                }
+
+                current = child;
+            }
+        }
+
+        sortFileTree(fileTreeRoot);
+    }
+
+    private void sortFileTree(@NonNull FileNode node) {
+        Collections.sort(node.children, (a, b) -> {
+            if (!a.isFile && b.isFile) return -1;   // folders first
+            if (a.isFile && !b.isFile) return 1;
+            return a.name.compareToIgnoreCase(b.name);
+        });
+
+        for (FileNode c : node.children) {
+            sortFileTree(c);
+        }
+    }
+
+    private void showFolderPicker(boolean isFile) {
+        if (getContext() == null) return;
+
+        List<String> folders = collectFolderPaths();   // includes "(root)"
+        CharSequence[] labels = new CharSequence[folders.size()];
+
+        for (int i = 0; i < folders.size(); i++) {
+            String p = folders.get(i);
+            labels[i] = "(root)".equals(p) ? "⟂ Project root" : p;
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Choose folder")
+                .setItems(labels, (dialog, which) -> {
+                    String chosen = folders.get(which);
+                    String parentFolder =
+                            "(root)".equals(chosen) ? null : chosen; // null = top level
+
+                    if (isFile) {
+                        showCreateFileDialog(parentFolder);
+                    } else {
+                        showCreateFolderFlow(parentFolder);
+                    }
+                })
+                .show();
+    }
+
+
+    private void showCreateItemChooser(@Nullable String parentFolder) {
+        if (getContext() == null) return;
+
+        String[] options = {"New file", "New folder"};
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Create")
+                .setItems(options, (dialog, which) -> {
+                    boolean isFile = (which == 0);
+
+                    if (parentFolder != null && !parentFolder.isEmpty()) {
+                        // Called from a folder "+" → we already know the parent
+                        if (isFile) {
+                            showCreateFileDialog(parentFolder);
+                        } else {
+                            showCreateFolderFlow(parentFolder);
+                        }
+                    } else {
+                        // Called from top "+" → ask which folder (or root) first
+                        showFolderPicker(isFile);
+                    }
+                })
+                .show();
+    }
+
+    private void showCreateFolderFlow(@Nullable String parentFolder) {
+        if (getContext() == null) return;
+
+        final EditText input = new EditText(getContext());
+        input.setHint("Folder name (e.g. src or logic)");
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        input.setPadding(pad, pad, pad, pad);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("New folder")
+                .setView(input)
+                .setPositiveButton("Next", (d, w) -> {
+                    String folder = input.getText().toString().trim();
+                    if (folder.isEmpty()) return;
+
+                    String fullFolder = (parentFolder == null || parentFolder.isEmpty())
+                            ? folder
+                            : parentFolder + "/" + folder;
+
+                    // After creating a folder, immediately ask for the first file inside it
+                    showCreateFileDialog(fullFolder);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+
+    private List<String> collectFolderPaths() {
+        List<String> result = new ArrayList<>();
+        result.add("(root)");
+
+        java.util.LinkedHashSet<String> seen = new java.util.LinkedHashSet<>();
+
+        for (OpenFile f : availableFiles) {
+            if (f.id == null) continue;
+            String norm = normalizePath(f.id);
+            String[] parts = norm.split("/");
+
+            StringBuilder pathBuilder = new StringBuilder();
+            // all segments except the last (last is file name)
+            for (int i = 0; i < parts.length - 1; i++) {
+                String part = parts[i].trim();
+                if (part.isEmpty()) continue;
+
+                if (pathBuilder.length() > 0) pathBuilder.append("/");
+                pathBuilder.append(part);
+                seen.add(pathBuilder.toString());
+            }
+        }
+
+        result.addAll(seen);
+        return result;
+    }
+
+
+    // ---------------------- Render single node (folder or file) ----------------------
+    private void renderFileNodeRow(@NonNull LinearLayout parent,
+                                   @NonNull LayoutInflater inflater,
+                                   @NonNull FileNode node,
+                                   int depth) {
+
+        View row = inflater.inflate(R.layout.item_file_node, parent, false);
+
+        View rowRoot = row.findViewById(R.id.row_root);
+        ImageView iconExpand = row.findViewById(R.id.icon_expand);
+        ImageView iconType = row.findViewById(R.id.icon_type);
+        TextView textName = row.findViewById(R.id.text_name);
+        ImageButton btnAddChild = row.findViewById(R.id.btn_add_child);
+        ImageButton btnDelete = row.findViewById(R.id.btn_delete);
+
+        // Indent based on depth
+        int basePaddingStart = dp(4);
+        int indent = dp(14) * depth;
+        rowRoot.setPadding(
+                basePaddingStart + indent,
+                rowRoot.getPaddingTop(),
+                rowRoot.getPaddingRight(),
+                rowRoot.getPaddingBottom()
+        );
+
+        textName.setText(node.name);
+
+        if (!node.isFile) {
+            // ---------- FOLDER ----------
+            iconType.setImageResource(R.drawable.ic_folder_24);
+
+            btnAddChild.setVisibility(View.VISIBLE);
+            btnDelete.setVisibility(View.VISIBLE);
+
+            boolean expanded = folderExpansion.getOrDefault(node.fullPath, Boolean.TRUE);
+            folderExpansion.put(node.fullPath, expanded);
+
+            iconExpand.setVisibility(View.VISIBLE);
+            iconExpand.setImageResource(
+                    expanded ? R.drawable.ic_expand_less_24 : R.drawable.ic_expand_more_24
+            );
+
+            // expand / collapse
+            View.OnClickListener toggle = v -> {
+                boolean cur = folderExpansion.getOrDefault(node.fullPath, Boolean.TRUE);
+                folderExpansion.put(node.fullPath, !cur);
+                if (filesListContainer != null) renderFilesList(filesListContainer);
+            };
+            rowRoot.setOnClickListener(toggle);
+            iconExpand.setOnClickListener(toggle);
+
+            // + : create file/folder inside this folder
+            btnAddChild.setOnClickListener(v -> showCreateItemChooser(node.fullPath));
+
+            // delete folder (and files inside)
+            btnDelete.setOnClickListener(v -> {
                 new AlertDialog.Builder(requireContext())
-                        .setTitle("Delete file?")
-                        .setMessage("Delete " + file.name + "?")
+                        .setTitle("Delete folder?")
+                        .setMessage("Delete " + node.fullPath + " and all its files?")
                         .setPositiveButton("Delete", (d, w) -> {
-                            deleteFile(file);
-                            renderFilesList(container);
+                            String folderNorm = normalizePath(node.fullPath);
+                            String prefix = folderNorm + "/";
+
+                            // collect & delete all files in this folder
+                            List<OpenFile> toRemove = new ArrayList<>();
+                            for (OpenFile f : new ArrayList<>(availableFiles)) {
+                                String idNorm = normalizePath(f.id);
+                                if (idNorm.equals(folderNorm) || idNorm.startsWith(prefix)) {
+                                    toRemove.add(f);
+                                }
+                            }
+                            for (OpenFile f : toRemove) {
+                                deleteFile(f);
+                            }
+                            if (filesListContainer != null) renderFilesList(filesListContainer);
                         })
                         .setNegativeButton("Cancel", null)
                         .show();
             });
 
-            row.addView(name);
-            row.addView(trash);
-            container.addView(row);
+            parent.addView(row);
+
+            if (expanded) {
+                for (FileNode child : node.children) {
+                    renderFileNodeRow(parent, inflater, child, depth + 1);
+                }
+            }
+        } else {
+            // ---------- FILE ----------
+            iconExpand.setVisibility(View.INVISIBLE);
+            iconType.setImageDrawable(null);         // no icon for file
+            btnAddChild.setVisibility(View.GONE);    // IMPORTANT
+            btnDelete.setVisibility(View.VISIBLE);
+
+            rowRoot.setOnClickListener(v -> {
+                OpenFile of = findOpenFileByPath(node.fullPath);
+                if (of != null) {
+                    openOrSelectFile(of);
+                    hideFilesPanel();
+                }
+            });
+
+            btnDelete.setOnClickListener(v -> {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Delete file?")
+                        .setMessage("Delete " + node.fullPath + "?")
+                        .setPositiveButton("Delete", (d, w) -> {
+                            OpenFile of = findOpenFileByPath(node.fullPath);
+                            if (of != null) deleteFile(of);
+                            if (filesListContainer != null) renderFilesList(filesListContainer);
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
+
+            parent.addView(row);
         }
+    }
+
+    // ---------------------- Helpers ----------------------
+    private int dp(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density);
+    }
+
+    @Nullable
+    private OpenFile findOpenFileByPath(@NonNull String path) {
+        String norm = normalizePath(path);
+        for (OpenFile f : availableFiles) {
+            if (normalizePath(f.id).equals(norm)) {
+                return f;
+            }
+        }
+        return null;
     }
 
     private void deleteFile(@NonNull OpenFile file) {
         int idx = availableFiles.indexOf(file);
-        if (idx >= 0) availableFiles.remove(idx);
+        if (idx >= 0) {
+            availableFiles.remove(idx);
+        }
 
         boolean wasCurrent = false;
+
         if (tabLayout != null) {
             int selected = tabLayout.getSelectedTabPosition();
             if (selected >= 0) {
                 TabLayout.Tab sel = tabLayout.getTabAt(selected);
-                if (sel != null && sel.getTag() instanceof OpenFile) {
-                    OpenFile selFile = (OpenFile) sel.getTag();
+                if (sel != null && sel.getTag() instanceof OpenFile selFile) {
                     wasCurrent = file.id.equals(selFile.id);
                 }
             }
 
             for (int i = 0; i < tabLayout.getTabCount(); i++) {
                 TabLayout.Tab t = tabLayout.getTabAt(i);
-                if (t != null && t.getTag() instanceof OpenFile) {
-                    OpenFile of = (OpenFile) t.getTag();
+                if (t != null && t.getTag() instanceof OpenFile of) {
                     if (file.id.equals(of.id)) {
                         tabLayout.removeTabAt(i);
                         break;
@@ -1417,8 +1754,8 @@ public class CodeEditorFragment extends Fragment {
                         codeEditor.setText(((OpenFile) tag).content);
                     }
                 }
-            } else {
-                if (codeEditor != null) codeEditor.setText("");
+            } else if (codeEditor != null) {
+                codeEditor.setText("");
             }
         }
 
@@ -1426,6 +1763,7 @@ public class CodeEditorFragment extends Fragment {
             renderFilesList(filesListContainer);
         }
     }
+
 
     // ---------- small utils ----------
     private String b64(String s) {
@@ -1566,7 +1904,8 @@ public class CodeEditorFragment extends Fragment {
                 JSONObject st = res.getJSONObject("status");
                 return st.optString("description", "?");
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return res.optString("status", "?");
     }
 
@@ -1580,7 +1919,10 @@ public class CodeEditorFragment extends Fragment {
         int idx = caret;
         for (int k = 0; k < 20 && idx > 0; k++) {
             int next = all.lastIndexOf('\n', idx - 1);
-            if (next < 0) { idx = 0; break; }
+            if (next < 0) {
+                idx = 0;
+                break;
+            }
             idx = next;
         }
         int from = (idx <= 0) ? 0 : (idx + 1);
@@ -1601,10 +1943,28 @@ public class CodeEditorFragment extends Fragment {
 
     private String normalizePath(String p) {
         if (p == null) return "";
-        if (p.startsWith("./")) {
-            p = p.substring(2);
+
+        // Trim and normalize separators
+        p = p.trim().replace("\\", "/");
+
+        // Remove leading "./", "../", or "/" (can appear multiple times)
+        while (p.startsWith("./") || p.startsWith(".\\") || p.startsWith("../")) {
+            p = p.substring(p.indexOf('/') + 1); // skip first segment
         }
-        return p.trim().toLowerCase();
+        while (p.startsWith("/")) {
+            p = p.substring(1);
+        }
+
+        // Collapse multiple slashes into one
+        p = p.replaceAll("/+", "/");
+
+        // Remove trailing slash (so "css/" -> "css")
+        if (p.endsWith("/")) {
+            p = p.substring(0, p.length() - 1);
+        }
+
+        // If you really want case-insensitive comparisons, keep this:
+        return p.toLowerCase(Locale.ROOT);
     }
 
 
@@ -1621,8 +1981,7 @@ public class CodeEditorFragment extends Fragment {
                 f.content = newContent;
                 if (tabLayout != null) {
                     TabLayout.Tab tab = tabLayout.getTabAt(tabLayout.getSelectedTabPosition());
-                    if (tab != null && tab.getTag() instanceof OpenFile) {
-                        OpenFile cur = (OpenFile) tab.getTag();
+                    if (tab != null && tab.getTag() instanceof OpenFile cur) {
                         if (id.equals(cur.id) && codeEditor != null) {
                             codeEditor.setText(newContent);
                         }
@@ -1633,10 +1992,14 @@ public class CodeEditorFragment extends Fragment {
     }
 
     private void showCreateFileDialog() {
+        showCreateFileDialog(null);
+    }
+
+    private void showCreateFileDialog(@Nullable String parentFolder) {
         if (getContext() == null) return;
 
         final EditText input = new EditText(getContext());
-        input.setHint("e.g. main.py or game/logic.py");
+        input.setHint("File name (e.g. main.py)");
         int pad = (int) (16 * getResources().getDisplayMetrics().density);
         input.setPadding(pad, pad, pad, pad);
 
@@ -1647,17 +2010,22 @@ public class CodeEditorFragment extends Fragment {
                     String name = input.getText().toString().trim();
                     if (name.isEmpty()) return;
 
-                    if (alreadyHasFile(name)) {
-                        printToConsole("File \"" + name + "\" already exists.\n");
+                    String id = (parentFolder == null || parentFolder.isEmpty())
+                            ? name
+                            : parentFolder + "/" + name;
+
+                    if (alreadyHasFile(id)) {
+                        printToConsole("File \"" + id + "\" already exists.\n");
                         SnackBarApp.INSTANCE.show(
                                 requireActivity().findViewById(android.R.id.content),
                                 "A file with that name already exists",
                                 SnackBarApp.Type.ERROR
                         );
+                        return;
                     }
 
-                    OpenFile of = new OpenFile(name, name, "");
-                    aiManagedFiles.put(name, Boolean.FALSE);
+                    OpenFile of = new OpenFile(id, id, "");
+                    aiManagedFiles.put(id, Boolean.FALSE);
                     addAvailableFileFromOutside(of);
                 })
                 .setNegativeButton("Cancel", null)
@@ -1748,13 +2116,20 @@ public class CodeEditorFragment extends Fragment {
 
     // ---------- tiny utility watcher ----------
     private abstract static class SimpleTextWatcher implements android.text.TextWatcher {
-        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-        @Override public void afterTextChanged(android.text.Editable s) {}
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void afterTextChanged(android.text.Editable s) {
+        }
     }
 
     // ---------- added helpers ----------
 
-    /** send plain text to live container */
+    /**
+     * send plain text to live container
+     */
     private void sendToLive(@NonNull String text) {
         if (liveSocket != null) {
             liveSocket.send(text);
@@ -1763,7 +2138,9 @@ public class CodeEditorFragment extends Fragment {
         }
     }
 
-    /** get current content of a file by id */
+    /**
+     * get current content of a file by id
+     */
     private String getFileContentById(@NonNull String id) {
         for (OpenFile f : availableFiles) {
             if (id.equals(f.id)) return f.content != null ? f.content : "";
