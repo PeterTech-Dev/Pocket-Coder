@@ -1,52 +1,299 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Pocket Coder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #ffffff;
+      --primary: #3d5afe;
+      --primary-soft: #e3f2fd;
+      --accent: #673ab7;
+      --text-main: #0b1020;
+      --text-muted: #64748b;
+      --border-subtle: #e2e8f0;
+      --radius-xl: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:#F5F6FA;
-      color:#1A1A1A;
-      text-align:center;
-      margin:0;
-      padding:40px 16px;
+      margin: 0;
+      padding: 32px 16px 40px;
+      background: radial-gradient(circle at top left, #1e293b, #020617);
+      color: #f8fafc;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
     }
-    h1 { color:#3D5AFE; font-size:40px; margin-bottom:8px; }
-    h2 { color:#673AB7; font-size:22px; margin-top:0; }
-    .section { max-width:700px; margin:32px auto; line-height:1.6; }
-    .btn {
-      display:inline-block;
-      margin-top:16px;
-      padding:14px 28px;
-      background:#2979FF;
-      color:#FFFFFF;
-      border-radius:999px;
-      text-decoration:none;
-      font-weight:600;
+
+    .page {
+      width: 100%;
+      max-width: 900px;
     }
-    .tag { font-size:14px; opacity:0.7; }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-xl);
+      padding: 32px 24px 28px;
+      margin: 0 auto;
+      max-width: 780px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .header-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      color: var(--primary);
+      font-size: 36px;
+      margin: 0 0 6px;
+      letter-spacing: 0.03em;
+    }
+
+    h2 {
+      color: var(--accent);
+      font-size: 20px;
+      margin: 0 0 16px;
+      font-weight: 500;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .card {
+        padding: 24px 18px 22px;
+      }
+
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+    }
+
+    .section {
+      line-height: 1.6;
+      color: var(--text-main);
+      font-size: 15px;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: #0b3c8a;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 22px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 14px 40px rgba(59, 130, 246, 0.4);
+      white-space: nowrap;
+    }
+
+    .btn-primary span {
+      font-size: 15px;
+    }
+
+    .btn-note {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* QR code section */
+    .qr-section {
+      border-radius: 20px;
+      padding: 18px 16px;
+      background: #f8fafc;
+      border: 1px dashed var(--border-subtle);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .qr-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .qr-box {
+      width: 140px;
+      height: 140px;
+      border-radius: 18px;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 8px;
+    }
+
+    .qr-caption {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 260px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 12px;
+      color: #cbd5f5;
+      opacity: 0.9;
+    }
+
+    .footer span {
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body>
-  <h1>Pocket Coder</h1>
-  <h2>Code anywhere. Build instantly.</h2>
+  <div class="page">
+    <main class="card">
+      <div class="header-tag">
+        <span>🚀 Pocket Coder · Beta</span>
+      </div>
+      <h1>Pocket Coder</h1>
+      <h2>Code anywhere. Build instantly.</h2>
+      <p class="subtitle">
+        An AI-powered mobile IDE that lives in your pocket — generate, edit, and run code from your phone.
+      </p>
 
-  <div class="section">
-    <p>Pocket Coder is an AI-powered mobile IDE that lets you generate, edit, and run code directly from your phone.</p>
-    <p>Supports Python, JavaScript, TypeScript, Java, C/C++, and HTML/CSS with console and web previews.</p>
-  </div>
+      <section class="layout">
+        <!-- Left: copy + CTA -->
+        <div class="section">
+          <div class="stack">
+            <p>
+              Pocket Coder turns your phone into a mini dev environment. Write quick scripts, prototype ideas,
+              or ship fixes on the go — without opening your laptop.
+            </p>
+            <p>
+              Supports Python, JavaScript, TypeScript, Java, C/C++, and HTML/CSS with both console and live web previews.
+            </p>
+          </div>
 
-  <div class="section">
-    <p><strong>Beta is still in development.</strong><br/>Leave your details to get the APK when it’s ready:</p>
-    <a class="btn" href="YOUR_GOOGLE_FORM_LINK_HERE" target="_blank">
-      Join the beta waitlist
-    </a>
-    <p class="tag">Free while in beta • Limited early access</p>
-  </div>
+          <div class="pill-row">
+            <div class="pill">AI pair programmer</div>
+            <div class="pill">Mobile-first IDE</div>
+            <div class="pill">Console & web preview</div>
+          </div>
 
-  <div class="section tag">
-    Built by the Pocket Coder team — 2025
+          <div class="btn-row">
+            <a
+              class="btn-primary"
+              href="https://docs.google.com/forms/d/e/1FAIpQLSeMFmMi0puP5mIcu-6umVjDPVHykEEKCPg6_XUroGR9RR8ZRw/viewform?usp=dialog"
+              target="_blank"
+            >
+              <span>Join the beta waitlist</span> →
+            </a>
+            <span class="btn-note">Free while in beta · Limited early access</span>
+          </div>
+
+          <p class="meta">
+            <strong>Beta is still in development.</strong> Leave your details to get the APK as soon as it’s ready.
+          </p>
+        </div>
+
+        <!-- Right: QR template -->
+        <aside class="qr-section">
+          <div class="qr-title">Scan from your phone</div>
+
+          <div class="qr-box">
+            <!-- TEMPLATE: replace this with your QR image -->
+            <!-- Example: <img src="qr-beta.png" alt="QR code for Pocket Coder beta" width="140" height="140" /> -->
+            QR CODE<br />GOES HERE
+          </div>
+
+          <p class="qr-caption">
+            Point your camera at the code to open the beta sign-up form instantly on your device.
+          </p>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Built by the Pocket Coder team · <span>2025</span>
+    </footer>
   </div>
 </body>
 </html>
