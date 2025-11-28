@@ -2,6 +2,8 @@ package com.example.aiassistantcoder;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -9,9 +11,12 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -69,6 +74,16 @@ public class HomeFragment extends Fragment {
     private final Gson gson = new Gson();
     private final Executor bg = Executors.newSingleThreadExecutor();
 
+    private void hideKeyboard() {
+        View view = requireActivity().getCurrentFocus();
+        if (view == null) {
+            view = new View(requireContext());
+        }
+        InputMethodManager imm =
+                (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
     private final ActivityResultLauncher<Intent> pickImage = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -91,6 +106,7 @@ public class HomeFragment extends Fragment {
                 }
             });
 
+    @SuppressLint("ClickableViewAccessibility")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -107,6 +123,14 @@ public class HomeFragment extends Fragment {
         imagePreview = view.findViewById(R.id.image_preview_home);
         imagePreviewContainer = view.findViewById(R.id.image_preview_container_home);
         ImageButton removeImageButton = view.findViewById(R.id.remove_image_button_home);
+
+        View root = view.findViewById(R.id.home_root);
+        root.setOnClickListener(v -> {
+            if (searchBar != null && searchBar.hasFocus()) {
+                searchBar.clearFocus();
+                hideKeyboard();
+            }
+        });
 
         // ---- Use TextInputLayout end icon as "pick image" button ----
         inputLayout.setEndIconOnClickListener(v -> {
@@ -133,6 +157,25 @@ public class HomeFragment extends Fragment {
                 submitToGemini();
             }
         });
+
+        view.setOnTouchListener((v, event) -> {
+            if (searchBar.isFocused()) {
+                searchBar.clearFocus();
+                hideKeyboard();
+            }
+            return false;
+        });
+
+        searchBar.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                hideKeyboard();
+                searchBar.clearFocus();
+                submitToGemini();     // Enter = Done = submit
+                return true;          // consume
+            }
+            return false;
+        });
+
 
         return view;
     }
@@ -181,7 +224,10 @@ public class HomeFragment extends Fragment {
                         "- Do NOT split one file across multiple objects.\n" +
                         "- Use forward slashes in paths.\n" +
                         "- Do NOT add extra top-level fields.\n" +
-                        "- Do NOT wrap the JSON in markdown or code fences.\n";
+                        "- Do NOT wrap the JSON in markdown or code fences.\n" +
+                        "- If the user requests an application that requires visual output, UI, or display elements (e.g. windows, interfaces, graphics, webpages, dashboards), you MUST generate the solution using HTML by default.\n" +
+                        "- However, if the user explicitly states that the project must use a specific language (even if visual), the assistant MUST generate the solution using the requested language instead.\n" +
+                        "- If HTML is not requested but necessary for the requested visuals, the assistant should still choose HTML unless a different language is clearly and explicitly specified by the user.\n";
 
         JsonObject systemInstruction = new JsonObject();
         JsonArray sysParts = new JsonArray();

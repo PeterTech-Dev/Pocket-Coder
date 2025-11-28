@@ -44,6 +44,16 @@ import kotlin.jvm.functions.Function0
 import kotlin.jvm.functions.Function1
 import kotlin.jvm.functions.Function2
 import kotlin.jvm.functions.Function6
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+
 
 // =====================================================
 // BINDER FUNCTIONS (called from Java)
@@ -170,10 +180,18 @@ fun SignInContent(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPhoneDialog by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                })
+            }
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -194,6 +212,13 @@ fun SignInContent(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Email") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next,
+                        keyboardType = KeyboardType.Email
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = bgThird,
                         unfocusedContainerColor = bgThird,
@@ -214,6 +239,17 @@ fun SignInContent(
                     placeholder = { Text("Password") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                        keyboardType = KeyboardType.Password
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                            onEmailSignIn(email.trim(), password.trim())
+                        }
+                    ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = bgThird,
                         unfocusedContainerColor = bgThird,
@@ -228,7 +264,11 @@ fun SignInContent(
                 Spacer(Modifier.height(20.dp))
 
                 Button(
-                    onClick = { onEmailSignIn(email.trim(), password.trim()) },
+                    onClick = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                        onEmailSignIn(email.trim(), password.trim())
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -454,10 +494,18 @@ fun RegisterContent(
     var confirmEmail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                })
+            }
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -478,6 +526,12 @@ fun RegisterContent(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("First name") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = bgThird,
                         unfocusedContainerColor = bgThird,
@@ -497,6 +551,12 @@ fun RegisterContent(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Last name") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = bgThird,
                         unfocusedContainerColor = bgThird,
@@ -516,6 +576,12 @@ fun RegisterContent(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Email") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = bgThird,
                         unfocusedContainerColor = bgThird,
@@ -535,6 +601,12 @@ fun RegisterContent(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Confirm email") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = bgThird,
                         unfocusedContainerColor = bgThird,
@@ -554,6 +626,12 @@ fun RegisterContent(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Password") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
                     visualTransformation = PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = bgThird,
@@ -574,6 +652,12 @@ fun RegisterContent(
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Confirm password") },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
                     visualTransformation = PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = bgThird,
@@ -590,6 +674,9 @@ fun RegisterContent(
 
                 Button(
                     onClick = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+
                         onRegister(
                             firstName.trim(),
                             lastName.trim(),

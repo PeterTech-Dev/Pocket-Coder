@@ -2,10 +2,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/home_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipChildren="false"
-    android:clipToPadding="false">
+    android:clipToPadding="false"
+    android:clickable="true"
+    android:focusableInTouchMode="true">
 
     <!-- CENTERED BLOCK: image + header + input -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -69,11 +72,11 @@
                 style="@style/App.TextInput.EditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textMultiLine"
+                android:inputType="text"
+                android:imeOptions="actionDone"
                 android:textColor="@color/colorOnSurface"
                 android:textCursorDrawable="@null"
-                android:minLines="3"
-                android:maxLines="6"
+                android:maxLines="1"
                 android:padding="0dp"
                 android:background="@null" />
         </com.google.android.material.textfield.TextInputLayout>
