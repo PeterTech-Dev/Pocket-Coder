@@ -6,11 +6,11 @@
 Mobile-first IDE with AI-assisted development — code anywhere, no laptop required.
 
 Pocket Coder transforms an Android device into a portable coding environment, allowing users to write, edit, run, and save programs instantly.  
-Designed for accessibility, education, and real development without desktop hardware.
-![Version](https://img.shields.io/badge/Version-1.1.1-blue)
-![Platform](https://img.shields.io/badge/Android-Mobile-green?logo=android)
-![Status](https://img.shields.io/badge/Beta-Active-yellow)
-![Backend](https://img.shields.io/badge/AI_Execution-Offline-orange)
+Designed for accessibility, education, and real development without desktop hardware.  
+![Version](https://img.shields.io/badge/Version-1.1.1-blue)  
+![Platform](https://img.shields.io/badge/Android-Mobile-green?logo=android)  
+![Status](https://img.shields.io/badge/Beta-Active-yellow)  
+![Backend](https://img.shields.io/badge/AI_Execution-Offline-orange)  
 ![License](https://img.shields.io/badge/Use-Restricted-red)
 ## 🔥 Motivation — Why Pocket Coder Exists
 
